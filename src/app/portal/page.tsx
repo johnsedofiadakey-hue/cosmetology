@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Phone, Lock, ArrowRight, ShieldCheck } from "lucide-react";
+import { Phone, Lock, ArrowRight, ShieldCheck, ArrowLeft } from "lucide-react";
 
 export default function ClientPortalAuth() {
   const [phone, setPhone] = useState("");
@@ -44,6 +45,9 @@ export default function ClientPortalAuth() {
     <div className="min-h-screen bg-brand-primary flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-brand-accent" />
+        <Link href="/" className="absolute top-6 left-6 p-2 text-zinc-300 hover:text-brand-primary transition-colors">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
         
         <div className="text-center mb-10">
           <h2 className="text-4xl font-serif text-brand-primary mb-2">My Studio Portal</h2>

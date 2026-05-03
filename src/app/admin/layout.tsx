@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LayoutDashboard, Scissors, Package, Settings, Users, Calendar } from "lucide-react";
+import { LayoutDashboard, Scissors, Package, Settings, Users, Calendar, ArrowLeft, Image as ImageIcon } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -9,6 +9,7 @@ export default function AdminLayout({
   const menuItems = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
     { name: "Appointments", href: "/admin/appointments", icon: Calendar },
+    { name: "Portfolio", href: "/admin/portfolio", icon: ImageIcon },
     { name: "Services", href: "/admin/services", icon: Scissors },
     { name: "Inventory", href: "/admin/inventory", icon: Package },
     { name: "Clients", href: "/admin/clients", icon: Users },
@@ -48,7 +49,12 @@ export default function AdminLayout({
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         <header className="bg-white h-16 border-b flex items-center justify-between px-8">
-          <h2 className="text-xl font-medium">Dashboard</h2>
+          <div className="flex items-center gap-4">
+            <Link href="/" className="p-2 hover:bg-zinc-100 rounded-lg text-zinc-400 group transition-colors">
+              <ArrowLeft className="w-5 h-5 group-hover:text-brand-primary" />
+            </Link>
+            <h2 className="text-xl font-medium">Dashboard</h2>
+          </div>
           <div className="flex items-center gap-4">
             <button className="px-4 py-2 bg-brand-primary text-white rounded-lg text-sm">
               + New Appointment

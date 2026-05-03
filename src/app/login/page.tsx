@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Lock, User as UserIcon } from "lucide-react";
+import { Lock, User as UserIcon, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -25,7 +26,10 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-brand-primary flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-3xl p-10 shadow-2xl">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 relative">
+          <Link href="/" className="absolute -top-6 -left-6 p-2 text-zinc-400 hover:text-brand-primary transition-colors">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
           <div className="w-16 h-16 bg-brand-secondary/50 rounded-2xl mx-auto flex items-center justify-center text-brand-primary mb-4">
             <Lock className="w-8 h-8" />
           </div>

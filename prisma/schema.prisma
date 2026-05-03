@@ -159,14 +159,28 @@ model SystemSettings {
   heroTitle       String   @default("Elevate Your Natural Beauty")
   heroSubtitle    String   @default("Professional cosmetology services tailored to you.")
   heroImage       String?
+  heroVideoUrl    String?
+  heroMediaType   String   @default("image") // "image" or "video"
   
   // Contact & API Info
   contactEmail    String?
   contactPhone    String?
   address         String?
   whatsappNumber  String?
+  instagramUrl    String?
+  facebookUrl     String?
+  tiktokUrl       String?
   paystackPublicKey String?
   enableOTP         Boolean  @default(false)
 
   updatedAt       DateTime @updatedAt
+}
+
+model PortfolioItem {
+  id          String   @id @default(cuid())
+  title       String
+  category    String   // e.g. "Bridal", "Coloring", "Treatments"
+  imageUrl    String
+  description String?
+  createdAt   DateTime @default(now())
 }

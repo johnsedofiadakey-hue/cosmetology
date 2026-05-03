@@ -7,6 +7,7 @@ import { Portfolio } from "@/components/landing/Portfolio";
 import { TrustStrip } from "@/components/landing/TrustStrip";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { FAQ } from "@/components/landing/FAQ";
+import { Footer } from "@/components/landing/Footer";
 import prisma from "@/lib/prisma";
 
 export default async function Home() {
@@ -33,6 +34,8 @@ export default async function Home() {
         title={currentSettings.heroTitle} 
         subtitle={currentSettings.heroSubtitle} 
         backgroundImage={currentSettings.heroImage || defaultSettings.heroImage}
+        videoUrl={currentSettings.heroVideoUrl}
+        mediaType={currentSettings.heroMediaType as any}
       />
       <TrustStrip />
       <Services />
@@ -41,6 +44,7 @@ export default async function Home() {
       <About />
       <FAQ />
       <Contact />
+      <Footer settings={settings} />
       
       {/* Floating Booking Bar for Mobile */}
       <div className="fixed bottom-6 left-6 right-6 z-50 md:hidden animate-bounce-in">

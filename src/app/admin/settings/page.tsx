@@ -13,8 +13,13 @@ export default function SettingsPage() {
     heroTitle: "Elevate Your Natural Beauty",
     heroSubtitle: "Professional cosmetology services tailored to you.",
     heroImage: "/beauty_hero_bg.png",
+    heroVideoUrl: "",
+    heroMediaType: "image",
     paystackPublicKey: "",
     whatsappNumber: "",
+    instagramUrl: "",
+    facebookUrl: "",
+    tiktokUrl: "",
     enableOTP: false,
   });
 
@@ -141,23 +146,72 @@ export default function SettingsPage() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Hero Media Type</label>
+                      <div className="flex bg-zinc-100 p-1 rounded-xl">
+                        <button 
+                          onClick={() => setSettings({...settings, heroMediaType: 'image'})}
+                          className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${settings.heroMediaType === 'image' ? 'bg-white shadow-sm text-brand-primary' : 'text-zinc-500'}`}
+                        >
+                          Image
+                        </button>
+                        <button 
+                          onClick={() => setSettings({...settings, heroMediaType: 'video'})}
+                          className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${settings.heroMediaType === 'video' ? 'bg-white shadow-sm text-brand-primary' : 'text-zinc-500'}`}
+                        >
+                          Video
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Hero {settings.heroMediaType === 'image' ? 'Image' : 'Video'} URL</label>
+                      <input 
+                        type="text" 
+                        value={settings.heroMediaType === 'image' ? settings.heroImage : settings.heroVideoUrl}
+                        onChange={(e) => setSettings({...settings, [settings.heroMediaType === 'image' ? 'heroImage' : 'heroVideoUrl']: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Instagram URL</label>
+                      <input 
+                        type="text" 
+                        value={settings.instagramUrl || ''}
+                        onChange={(e) => setSettings({...settings, instagramUrl: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border"
+                        placeholder="https://instagram.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Facebook URL</label>
+                      <input 
+                        type="text" 
+                        value={settings.facebookUrl || ''}
+                        onChange={(e) => setSettings({...settings, facebookUrl: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border"
+                        placeholder="https://facebook.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">WhatsApp Link</label>
+                      <input 
+                        type="text" 
+                        value={settings.whatsappNumber || ''}
+                        onChange={(e) => setSettings({...settings, whatsappNumber: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border"
+                        placeholder="e.g. 233..."
+                      />
+                    </div>
+                    <div className="space-y-2">
                       <label className="text-sm font-medium text-zinc-700">Paystack Public Key</label>
                       <input 
                         type="text" 
                         value={settings.paystackPublicKey || ''}
                         onChange={(e) => setSettings({...settings, paystackPublicKey: e.target.value})}
-                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                        className="w-full px-4 py-3 rounded-xl border"
                         placeholder="pk_test_..."
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-zinc-700">WhatsApp Business Number</label>
-                      <input 
-                        type="text" 
-                        value={settings.whatsappNumber || ''}
-                        onChange={(e) => setSettings({...settings, whatsappNumber: e.target.value})}
-                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
-                        placeholder="e.g. 233..."
                       />
                     </div>
                   </div>

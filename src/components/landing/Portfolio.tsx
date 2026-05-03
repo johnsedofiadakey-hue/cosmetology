@@ -1,40 +1,40 @@
 "use client";
 
-import Image from "next/image";
-import { useState } from "react";
-
-const portfolioItems = [
-  { id: 1, category: "Hair", title: "Emerald Glow Balayage", image: "/service_hair.png" },
-  { id: 2, category: "Skin", title: "Dewy Glass Facial", image: "/service_skin.png" },
-  { id: 3, category: "Nails", title: "Minimalist Marble", image: "/service_nails.png" },
-  { id: 4, category: "Hair", title: "Precision Bob Cut", image: "/service_hair.png" },
-];
+import { useState, useEffect } from "react";
+import { Play, Maximize2 } from "lucide-react";
 
 export function Portfolio() {
+  const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState("All");
 
-  const filteredItems = filter === "All" 
-    ? portfolioItems 
-    : portfolioItems.filter(item => item.category === filter);
+  useEffect(() => {
+    fetch("/api/portfolio").then(res => res.json()).then(data => {
+      if (Array.isArray(data)) setItems(data);
+    });
+  }, []);
+
+  const categories = ["All", ...new Set(items.map(item => item.category))];
+  const filteredItems = filter === "All" ? items : items.filter(i => i.category === filter);
 
   return (
-    <section className="py-24 bg-white" id="portfolio">
+    <section className="py-24 bg-zinc-50" id="portfolio">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div>
-            <h2 className="text-4xl md:text-5xl font-serif text-brand-primary mb-4">The Portfolio</h2>
-            <p className="text-zinc-500">A showcase of our recent transformations.</p>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-accent mb-2 block tracking-widest">Our Artistry</span>
+            <h2 className="text-5xl md:text-6xl font-serif text-brand-primary mb-4 leading-tight">The Showcase</h2>
+            <p className="text-zinc-500 max-w-sm">A curated collection of professional transformations and technical excellence.</p>
           </div>
           
-          <div className="flex gap-4">
-            {["All", "Hair", "Skin", "Nails"].map((cat) => (
+          <div className="flex flex-wrap gap-3">
+            {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
-                className={`px-6 py-2 rounded-full border transition-all ${
+                className={`px-8 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all duration-500 backdrop-blur-sm ${
                   filter === cat 
-                  ? "bg-brand-primary text-brand-secondary border-brand-primary" 
-                  : "border-zinc-200 text-zinc-500 hover:border-brand-accent"
+                  ? "bg-brand-primary text-brand-secondary shadow-2xl shadow-brand-primary/30 scale-105" 
+                  : "bg-white border border-zinc-100 text-zinc-400 hover:text-brand-primary hover:border-brand-primary/30"
                 }`}
               >
                 {cat}
@@ -43,24 +43,49 @@ export function Portfolio() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {filteredItems.map((item) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
+          {filteredItems.length > 0 ? filteredItems.map((item) => (
             <div 
               key={item.id} 
-              className="group relative aspect-square rounded-2xl overflow-hidden cursor-pointer"
+              className="group relative aspect-[4/5] rounded-[40px] overflow-hidden cursor-pointer bg-white shadow-sm hover:shadow-2xl transition-all duration-700"
             >
-              <Image
-                src={item.image}
-                alt={item.title}
-                fill
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-              />
-              <div className="absolute inset-0 bg-brand-primary/60 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col items-center justify-center p-6 text-center text-white">
-                <span className="text-xs uppercase tracking-widest mb-2 text-brand-secondary font-bold">{item.category}</span>
-                <h4 className="text-xl font-serif">{item.title}</h4>
+              {item.imageUrl.includes('.mp4') ? (
+                <video 
+                  src={item.imageUrl} 
+                  muted 
+                  loop 
+                  autoPlay 
+                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                />
+              ) : (
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                />
+              )}
+              
+              <div className="absolute inset-x-4 bottom-4 p-8 rounded-[32px] bg-white/10 backdrop-blur-md border border-white/20 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 flex flex-col items-center text-center text-white">
+                <span className="text-[10px] uppercase tracking-[0.2em] mb-3 text-brand-secondary font-bold">{item.category}</span>
+                <h4 className="text-2xl font-serif mb-2">{item.title}</h4>
+                <div className="w-8 h-[1px] bg-white/40 mb-4" />
+                <div className="flex gap-4">
+                   <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                      <Maximize2 className="w-4 h-4" />
+                   </button>
+                </div>
+              </div>
+
+              {/* Media Type Badge */}
+              <div className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {item.imageUrl.includes('.mp4') ? <Play className="w-4 h-4 text-white fill-white" /> : <div className="w-1.5 h-1.5 rounded-full bg-brand-secondary" />}
               </div>
             </div>
-          ))}
+          )) : (
+            <div className="col-span-full py-20 text-center border-2 border-dashed border-zinc-200 rounded-[40px] text-zinc-400 font-serif italic">
+              Your artistic showcase will appear here.
+            </div>
+          )}
         </div>
       </div>
     </section>

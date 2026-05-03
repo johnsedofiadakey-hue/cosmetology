@@ -34,7 +34,6 @@ export function Navbar() {
           <Link href="#about" className="text-sm font-medium hover:text-brand-accent transition-colors">About</Link>
           <Link href="#contact" className="text-sm font-medium hover:text-brand-accent transition-colors">Contact</Link>
           <Link href="/portal" className="text-sm font-medium opacity-50 hover:opacity-100 transition-opacity">My Portal</Link>
-          <Link href="/admin/settings" className="text-sm font-medium opacity-50 hover:opacity-100 transition-opacity italic">Admin</Link>
           <Link href="/booking"><Button variant="primary" size="sm">Book Now</Button></Link>
         </div>
 
