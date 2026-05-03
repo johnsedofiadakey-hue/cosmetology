@@ -1,0 +1,172 @@
+// datasource and generator setup
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// --- USER & AUTHENTICATION ---
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  password      String
+  role          Role      @default(CLIENT)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  clientProfile Client?   // If role is CLIENT
+  staffProfile  Staff?    // If role is ADMIN/STAFF
+}
+
+enum Role {
+  CLIENT
+  STAFF
+  ADMIN
+}
+
+// --- STAFF & AVAILABILITY ---
+
+model Staff {
+  id           String        @id @default(cuid())
+  userId       String        @unique
+  user         User          @relation(fields: [userId], references: [id])
+  bio          String?
+  specialties  String?
+  isActive     Boolean       @default(true)
+  
+  // Relations
+  appointments Appointment[]
+  schedules    Schedule[]
+}
+
+model Schedule {
+  id          String   @id @default(cuid())
+  staffId     String
+  staff       Staff    @relation(fields: [staffId], references: [id])
+  dayOfWeek   Int      // 0 (Sunday) to 6 (Saturday)
+  startTime   String   // e.g., "09:00"
+  endTime     String   // e.g., "17:00"
+  isClosed    Boolean  @default(false)
+}
+
+// --- SERVICES & INVENTORY (The "Raw Materials") ---
+
+model Service {
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  price        Float
+  duration     Int           // Duration in minutes
+  category     String        // e.g., "Hair", "Nails", "Skin"
+  image        String?
+  
+  // Relations
+  appointments Appointment[]
+  materials    ServiceMaterial[]
+}
+
+model InventoryItem {
+  id           String    @id @default(cuid())
+  name         String    // e.g., "Organic Rose Water" or "Shade 7.1 Dye"
+  sku          String?   @unique
+  quantity     Float     // Current stock level
+  unit         String    // e.g., "ml", "g", "pcs"
+  minThreshold Float     @default(5.0) // For low-stock alerts
+  lastRestocked DateTime @default(now())
+  
+  // Relations
+  serviceUsage ServiceMaterial[]
+}
+
+// Pivot table to define which materials a service consumes
+model ServiceMaterial {
+  id              String        @id @default(cuid())
+  serviceId       String
+  service         Service       @relation(fields: [serviceId], references: [id])
+  inventoryItemId String
+  inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
+  estimatedUsage  Float         // How much is typically used per service
+}
+
+// --- BOOKING & CLIENT LOGIC ---
+
+model Client {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
+  phone         String?
+  notes         String?   // General notes about the client
+  
+  // Relations
+  appointments  Appointment[]
+  formulations  Formulation[]
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  clientId    String
+  client      Client            @relation(fields: [clientId], references: [id])
+  staffId     String
+  staff       Staff             @relation(fields: [staffId], references: [id])
+  serviceId   String
+  service     Service           @relation(fields: [serviceId], references: [id])
+  startTime   DateTime
+  endTime     DateTime
+  status      AppointmentStatus @default(PENDING)
+  totalPrice  Float
+  isPaid      Boolean           @default(false)
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NOSHOW
+}
+
+// The "Secret Sauce" - Tracking specific formulas for a client session
+model Formulation {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      Client   @relation(fields: [clientId], references: [id])
+  title       String   // e.g., "Winter Blonde Mix"
+  description String   // Detailed mix instructions
+  createdAt   DateTime @default(now())
+}
+
+// --- SYSTEM SETTINGS ---
+
+model SystemSettings {
+  id              Int      @id @default(1) // Singleton pattern: only one row exists
+  companyName     String   @default("Beauty Studio")
+  logoUrl         String?
+  primaryColor    String   @default("#052e16") // Default: Deep Green
+  secondaryColor  String   @default("#fef3c7") // Default: Soft Amber
+  accentColor     String   @default("#10b981") // Default: Emerald
+  fontFamily      String   @default("Inter")
+  
+  // Hero Section Content
+  heroTitle       String   @default("Elevate Your Natural Beauty")
+  heroSubtitle    String   @default("Professional cosmetology services tailored to you.")
+  heroImage       String?
+  
+  // Contact & API Info
+  contactEmail    String?
+  contactPhone    String?
+  address         String?
+  whatsappNumber  String?
+  paystackPublicKey String?
+  enableOTP         Boolean  @default(false)
+
+  updatedAt       DateTime @updatedAt
+}
