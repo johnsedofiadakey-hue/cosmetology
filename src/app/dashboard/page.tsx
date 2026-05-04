@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Calendar, Clock, CreditCard, FileText, Scissors, User as UserIcon, History as TreatmentHistory } from "lucide-react";
 
 export default function ClientDashboard() {
-  const [activeTab, setActiveTab] = useState<"appointments" | "invoices">("appointments");
+  const [activeTab, setActiveTab] = useState<"appointments" | "invoices" | "timeline">("appointments");
 
   const client = {
     name: "Jane Doe",

@@ -23,6 +23,8 @@ export default async function Home() {
     heroTitle: "Elevate Your Natural Beauty",
     heroSubtitle: "Professional cosmetology services tailored to you.",
     heroImage: "/beauty_hero_bg.png",
+    heroVideoUrl: null,
+    heroMediaType: "image",
   };
 
   const currentSettings = settings || defaultSettings;
@@ -34,7 +36,7 @@ export default async function Home() {
         title={currentSettings.heroTitle} 
         subtitle={currentSettings.heroSubtitle} 
         backgroundImage={currentSettings.heroImage || defaultSettings.heroImage}
-        videoUrl={currentSettings.heroVideoUrl}
+        videoUrl={currentSettings.heroVideoUrl || undefined}
         mediaType={currentSettings.heroMediaType as any}
       />
       <TrustStrip />

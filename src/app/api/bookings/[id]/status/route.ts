@@ -3,11 +3,11 @@ import prisma from '@/lib/prisma';
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { status } = await request.json();
-    const { id } = params;
+    const { id } = await params;
 
     // Use a transaction to ensure atomic update
     const result = await prisma.$transaction(async (tx) => {

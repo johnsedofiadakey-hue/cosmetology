@@ -42,7 +42,7 @@ export function Testimonials() {
               <div className="flex gap-1 mb-6">
                 {[...Array(review.rating)].map((_, j) => <Star key={j} className="w-3 h-3 fill-brand-accent text-brand-accent" />)}
               </div>
-              <p className="text-zinc-600 mb-8 italic leading-relaxed">"{review.content}"</p>
+              <p className="text-zinc-600 mb-8 italic leading-relaxed">&quot;{review.content}&quot;</p>
               <div>
                 <p className="font-bold text-brand-primary">{review.name}</p>
                 <p className="text-xs text-zinc-400 uppercase tracking-widest">{review.role}</p>
