@@ -3,11 +3,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, User, ShoppingBag, Calendar, Scissors } from "lucide-react";
 
-export function Navbar() {
+export function Navbar({ settings }: { settings?: any }) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const studioName = settings?.companyName || "LOU Beauty Hub";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -19,43 +19,71 @@ export function Navbar() {
 
   return (
     <nav 
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? "bg-white/80 backdrop-blur-md py-4 shadow-sm" : "bg-transparent py-6"
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        isScrolled 
+          ? "bg-[#FFF9F6]/80 backdrop-blur-xl py-3 shadow-lg border-b border-brand-accent/20" 
+          : "bg-transparent py-5"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        <Link href="/" className="text-2xl font-serif text-brand-primary">
-          Beauty Studio
+        <Link href="/" className="flex items-center gap-3 group">
+          {settings?.logoUrl ? (
+            <div className="relative w-12 h-12 overflow-hidden rounded-lg">
+              <img src={settings.logoUrl} alt={studioName} className="w-full h-full object-contain" />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-brand-accent flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform duration-500">
+               <Scissors className="w-5 h-5" />
+            </div>
+          )}
+          <span className="text-2xl font-serif text-[#1A1A1A] tracking-tight">
+            {studioName}
+          </span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center gap-8">
-          <Link href="#services" className="text-sm font-medium hover:text-brand-accent transition-colors">Services</Link>
-          <Link href="#about" className="text-sm font-medium hover:text-brand-accent transition-colors">About</Link>
-          <Link href="#contact" className="text-sm font-medium hover:text-brand-accent transition-colors">Contact</Link>
-          <Link href="/portal" className="text-sm font-medium opacity-50 hover:opacity-100 transition-opacity">My Portal</Link>
-          <Link href="/booking"><Button variant="primary" size="sm">Book Now</Button></Link>
+        <div className="hidden md:flex items-center gap-10">
+          <div className="flex items-center gap-8">
+            <Link href="/#services" className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-brand-primary transition-all relative group/link">
+              Services
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-accent transition-all group-hover/link:w-full" />
+            </Link>
+            <Link href="/#portfolio" className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-brand-primary transition-all relative group/link">
+              Showcase
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-accent transition-all group-hover/link:w-full" />
+            </Link>
+            <Link href="/#contact" className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-brand-primary transition-all relative group/link">
+              Contact
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-accent transition-all group-hover/link:w-full" />
+            </Link>
+          </div>
+
+          <div className="h-6 w-[1px] bg-zinc-200 mx-2" />
+
+          <div className="flex items-center gap-6">
+            <Link href="/portal" className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-400 hover:text-brand-primary transition-all group/portal">
+              <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center group-hover/portal:bg-brand-secondary transition-colors">
+                <User className="w-4 h-4 text-zinc-500 group-hover/portal:text-brand-primary" />
+              </div>
+              <span className="hidden lg:inline">My Portal</span>
+            </Link>
+            
+            <Link href="/booking">
+              <button className="px-8 py-3 bg-brand-primary text-white rounded-full text-xs font-bold uppercase tracking-widest hover:bg-brand-accent hover:scale-105 transition-all shadow-xl shadow-brand-primary/20 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Book Session
+              </button>
+            </Link>
+          </div>
         </div>
 
-        {/* Mobile Toggle */}
-        <button 
-          className="md:hidden text-brand-primary"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X /> : <Menu />}
-        </button>
+        {/* Mobile Menu Trigger (MobileNav is used for actual navigation, but we can show a trigger if needed) */}
+        <div className="md:hidden flex items-center gap-4">
+           <Link href="/portal" className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center">
+              <User className="w-5 h-5 text-zinc-500" />
+           </Link>
+        </div>
       </div>
-
-      {/* Mobile Menu */}
-      {isMobileMenuOpen && (
-        <div className="absolute top-full left-0 right-0 bg-white border-b p-6 flex flex-col gap-4 md:hidden shadow-xl animate-fade-in">
-          <Link href="#services" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium">Services</Link>
-          <Link href="#about" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium">About</Link>
-          <Link href="#contact" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium">Contact</Link>
-          <Link href="/portal" onClick={() => setIsMobileMenuOpen(false)} className="text-lg font-medium">My Portal</Link>
-          <Link href="/booking" onClick={() => setIsMobileMenuOpen(false)}><Button className="w-full">Book Now</Button></Link>
-        </div>
-      )}
     </nav>
   );
 }

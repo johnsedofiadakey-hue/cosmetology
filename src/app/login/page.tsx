@@ -2,24 +2,39 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Lock, User as UserIcon, ArrowLeft } from "lucide-react";
+import { Lock, User as UserIcon, ArrowLeft, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === "admin" && password === "admin123") {
-      // In a real app, this would set a secure HTTP-only cookie via API
-      document.cookie = "admin_auth=authenticated; path=/";
-      router.push("/admin/settings");
-    } else {
-      setError("Invalid credentials. Please check your username and password.");
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+      });
+
+      if (result?.error) {
+        setError("Invalid credentials. Please check your email and password.");
+      } else {
+        router.push("/admin/settings");
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -40,14 +55,15 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium text-zinc-700 flex items-center gap-2">
-              <UserIcon className="w-4 h-4" /> Username
+              <UserIcon className="w-4 h-4" /> Email
             </label>
             <input 
-              type="text" 
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email" 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
-              placeholder="admin"
+              placeholder="admin@beautystudio.com"
+              required
             />
           </div>
           <div className="space-y-2">
@@ -65,8 +81,8 @@ export default function LoginPage() {
 
           {error && <p className="text-red-500 text-xs text-center">{error}</p>}
 
-          <Button type="submit" className="w-full h-14 text-lg">
-            Unlock Dashboard
+          <Button type="submit" className="w-full h-14 text-lg" disabled={loading}>
+            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Unlock Dashboard"}
           </Button>
         </form>
 

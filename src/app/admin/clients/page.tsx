@@ -1,24 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { Search, User as UserIcon, History, FlaskConical, MoreVertical, MessageSquare } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, User as UserIcon, History, FlaskConical, MoreVertical, MessageSquare, Loader2 } from "lucide-react";
 
 export default function ClientVault() {
+  const [clients, setClients] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   
-  const clients = [
-    { id: 1, name: "Jane Doe", email: "jane@doe.com", phone: "+1 555-0101", lastVisit: "2024-05-01", totalSpent: 450.00 },
-    { id: 2, name: "Alice Smith", email: "alice@smith.net", phone: "+1 555-0102", lastVisit: "2024-04-22", totalSpent: 280.00 },
-  ];
+  useEffect(() => {
+    fetch("/api/admin/clients")
+      .then(res => res.json())
+      .then(data => {
+        setClients(data);
+        setLoading(false);
+      });
+  }, []);
 
-  const clientHistory = [
-    { id: 101, date: "2024-05-01", service: "Full Balayage", amount: 150.00, notes: "Requested cool tones." },
-    { id: 102, date: "2024-03-15", service: "Trim & Style", amount: 60.00, notes: "Regular maintenance." },
-  ];
-
-  const formulations = [
-    { id: 201, title: "Custom Cool Blonde", date: "2024-05-01", mix: "70% Developer + 30% Shade 7.1 + 5ml Blue Drop" },
-  ];
+  if (loading) {
+    return (
+      <div className="h-96 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-12rem)] gap-8">
@@ -104,7 +109,7 @@ export default function ClientVault() {
                   <h4 className="font-bold">Formulation Vault</h4>
                 </div>
                 <div className="space-y-4">
-                   {formulations.map(f => (
+                   {selectedClient.formulations?.map((f: any) => (
                      <div key={f.id} className="p-5 rounded-2xl bg-zinc-50 border border-dashed border-zinc-200">
                         <div className="flex justify-between items-start mb-2">
                           <p className="font-bold text-sm">{f.title}</p>
@@ -122,7 +127,7 @@ export default function ClientVault() {
                   <h4 className="font-bold">Service History</h4>
                 </div>
                 <div className="space-y-4">
-                   {clientHistory.map(h => (
+                   {selectedClient.history?.map((h: any) => (
                      <div key={h.id} className="flex gap-4">
                         <div className="w-[2px] bg-zinc-100 relative">
                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-brand-accent" />

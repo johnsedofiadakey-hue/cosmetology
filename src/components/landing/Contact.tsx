@@ -1,7 +1,11 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { MessageCircle, MapPin, Mail, Phone, Instagram } from "lucide-react";
 
-export function Contact() {
+export function Contact({ settings }: { settings?: any }) {
+
   return (
     <section className="py-24 bg-brand-primary text-white" id="contact">
       <div className="max-w-7xl mx-auto px-6">
@@ -19,7 +23,7 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="font-medium">Visit Us</h4>
-                  <p className="text-white/60">123 Beauty Lane, Luxury District</p>
+                  <p className="text-white/60">{settings?.address || '123 Beauty Lane, Luxury District'}</p>
                 </div>
               </div>
               
@@ -29,7 +33,7 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="font-medium">Email</h4>
-                  <p className="text-white/60">hello@beautystudio.com</p>
+                  <p className="text-white/60">{settings?.contactEmail || 'hello@beautystudio.com'}</p>
                 </div>
               </div>
               
@@ -39,7 +43,7 @@ export function Contact() {
                 </div>
                 <div>
                   <h4 className="font-medium">Follow Us</h4>
-                  <p className="text-white/60">@beautystudio_official</p>
+                  <p className="text-white/60">{settings?.instagramUrl?.split('/').filter(Boolean).pop() || '@beautystudio_official'}</p>
                 </div>
               </div>
             </div>
@@ -48,10 +52,12 @@ export function Contact() {
           <div className="bg-white rounded-3xl p-8 md:p-12 text-zinc-900 shadow-2xl">
             <h3 className="text-3xl font-serif mb-8 text-brand-primary">Quick Contact</h3>
             <div className="space-y-6">
-              <Button size="lg" className="w-full bg-[#25D366] text-white border-none hover:bg-[#20bd5c]">
-                <MessageCircle className="w-5 h-5 mr-2" />
-                Chat on WhatsApp
-              </Button>
+              <a href={`https://wa.me/${settings?.whatsappNumber || '233000000000'}`} target="_blank" rel="noopener noreferrer">
+                <Button size="lg" className="w-full bg-[#25D366] text-white border-none hover:bg-[#20bd5c]">
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  Chat on WhatsApp
+                </Button>
+              </a>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-zinc-200"></div>
@@ -60,10 +66,12 @@ export function Contact() {
                   <span className="bg-white px-2 text-zinc-500">Or Call Us</span>
                 </div>
               </div>
-              <Button variant="outline" size="lg" className="w-full">
-                <Phone className="w-5 h-5 mr-2" />
-                +1 (555) 000-0000
-              </Button>
+              <a href={`tel:${settings?.contactPhone || settings?.whatsappNumber || '+233000000000'}`}>
+                <Button variant="outline" size="lg" className="w-full">
+                  <Phone className="w-5 h-5 mr-2" />
+                  {settings?.contactPhone || (settings?.whatsappNumber ? `+${settings.whatsappNumber}` : '+233 (00) 000-0000')}
+                </Button>
+              </a>
             </div>
           </div>
         </div>

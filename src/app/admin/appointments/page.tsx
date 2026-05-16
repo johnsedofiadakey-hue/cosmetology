@@ -4,15 +4,38 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar as CalendarIcon, Clock, User, CheckCircle, XCircle, MoreVertical } from "lucide-react";
 
+import { useSearchParams } from "next/navigation";
+import { generateInvoiceSummary } from "@/lib/invoice";
+import { CalendarGrid } from "@/components/admin/CalendarGrid";
+
 export default function AdminAppointments() {
   const [appointments, setAppointments] = useState<any[]>([]);
   const [view, setView] = useState<"list" | "calendar">("list");
+  const [activeInvoice, setActiveInvoice] = useState<any>(null);
+  const [currency, setCurrency] = useState("GH₵");
+  const [companyName, setCompanyName] = useState("LOU Beauty Hub");
+  const searchParams = useSearchParams();
+  const isNew = searchParams.get("new") === "true";
+
+  useEffect(() => {
+    if (isNew) {
+      alert("Redirecting to Admin Booking Flow...");
+      window.location.href = "/booking?admin=true";
+    }
+  }, [isNew]);
 
   useEffect(() => {
     fetch("/api/bookings")
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data)) setAppointments(data);
+      });
+
+    fetch("/api/settings")
+      .then(res => res.json())
+      .then(data => {
+        if (data.currencySymbol) setCurrency(data.currencySymbol);
+        if (data.companyName) setCompanyName(data.companyName);
       });
   }, []);
 
@@ -25,6 +48,7 @@ export default function AdminAppointments() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
+    
     if (res.ok) {
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     }
@@ -74,7 +98,7 @@ export default function AdminAppointments() {
                     </div>
                     <div>
                       <p className="font-bold">{apt.client?.user?.name || 'Walk-in Client'}</p>
-                      <p className="text-xs text-brand-accent">{apt.service?.name}</p>
+                      <p className="text-xs text-brand-accent">{apt.services?.map((s: any) => s.name).join(', ') || 'No services'}</p>
                     </div>
                   </div>
                 </td>
@@ -113,6 +137,12 @@ export default function AdminAppointments() {
                         </button>
                       </>
                     )}
+                    <button 
+                      onClick={() => setActiveInvoice(apt)}
+                      className="px-3 py-2 text-[10px] font-bold uppercase bg-zinc-100 rounded-lg hover:bg-zinc-200"
+                    >
+                      Invoice
+                    </button>
                     <button className="p-2 hover:bg-zinc-100 rounded-lg text-zinc-400">
                       <MoreVertical className="w-5 h-5" />
                     </button>
@@ -130,34 +160,40 @@ export default function AdminAppointments() {
         </table>
       </div>
       ) : (
-        <div className="bg-white rounded-[40px] shadow-sm border p-8 overflow-x-auto">
-          <div className="min-w-[800px]">
-            <div className="grid grid-cols-8 border-b pb-4 mb-4">
-              <div />
-              {days.map(day => (
-                <div key={day} className="text-center text-xs font-bold uppercase text-zinc-400 tracking-widest">{day}</div>
-              ))}
+        <CalendarGrid 
+          appointments={appointments} 
+          onSelect={(apt) => setActiveInvoice(apt)} 
+        />
+      )}
+
+      {/* Invoice Modal Overlay */}
+      {activeInvoice && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6">
+          <div className="bg-white rounded-[40px] w-full max-w-lg p-10 shadow-2xl relative animate-in zoom-in-95 duration-200">
+            <button 
+              onClick={() => setActiveInvoice(null)}
+              className="absolute top-8 right-8 p-2 hover:bg-zinc-100 rounded-full"
+            >
+              <XCircle className="w-6 h-6 text-zinc-400" />
+            </button>
+            <div className="mb-8">
+              <h4 className="text-2xl font-serif text-brand-primary">Billing Summary</h4>
+              <p className="text-zinc-500 text-sm">Receipt for session #${activeInvoice.id.slice(-6)}</p>
             </div>
-            <div className="space-y-1">
-              {hours.map(hour => (
-                <div key={hour} className="grid grid-cols-8 items-center h-20 border-b border-zinc-50 last:border-0 group">
-                  <div className="text-[10px] font-bold text-zinc-300 group-hover:text-brand-primary transition-colors">{hour}</div>
-                  {Array.from({ length: 7 }).map((_, i) => {
-                    // Simulation: finding appointments for this slot
-                    const hasApt = Math.random() > 0.8;
-                    return (
-                      <div key={i} className="h-full border-l border-zinc-50 relative p-1">
-                        {hasApt && (
-                          <div className="absolute inset-1 bg-brand-primary/10 rounded-xl border border-brand-primary/20 p-2 text-[8px] overflow-hidden group/apt cursor-pointer hover:bg-brand-primary hover:text-white transition-all">
-                             <p className="font-bold truncate">Client Session</p>
-                             <p className="opacity-70">Cut & Color</p>
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
-                </div>
-              ))}
+            <pre className="bg-zinc-50 p-8 rounded-3xl font-mono text-sm leading-relaxed text-zinc-700 whitespace-pre-wrap border border-dashed">
+              {generateInvoiceSummary({
+                invoiceNumber: `INV-${activeInvoice.id.slice(-6).toUpperCase()}`,
+                date: new Date(activeInvoice.startTime).toLocaleDateString(),
+                clientName: activeInvoice.client?.user?.name || "Valued Client",
+                serviceName: activeInvoice.services?.map((s: any) => s.name).join(', ') || "Studio Service",
+                amount: activeInvoice.totalPrice,
+                companyName: companyName,
+                currencySymbol: currency
+              })}
+            </pre>
+            <div className="mt-8 flex gap-4">
+               <Button className="flex-1 h-14 rounded-2xl" onClick={() => window.print()}>Print Invoice</Button>
+               <Button variant="outline" className="flex-1 h-14 rounded-2xl" onClick={() => setActiveInvoice(null)}>Close</Button>
             </div>
           </div>
         </div>

@@ -1,23 +1,23 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const isAuth = !!token;
+    const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
 
-  // Protect admin routes
-  if (pathname.startsWith('/admin')) {
-    const authCookie = request.cookies.get('admin_auth');
-
-    if (!authCookie || authCookie.value !== 'authenticated') {
-      const url = request.nextUrl.clone();
-      url.pathname = '/login';
-      return NextResponse.redirect(url);
+    if (isAdminRoute && token?.role !== "ADMIN" && token?.role !== "STAFF") {
+      return NextResponse.redirect(new URL("/login", req.url));
     }
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token,
+    },
   }
-
-  return NextResponse.next();
-}
+);
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ["/admin/:path*", "/dashboard/:path*", "/portal/:path*"],
 };

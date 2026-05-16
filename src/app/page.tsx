@@ -8,6 +8,9 @@ import { TrustStrip } from "@/components/landing/TrustStrip";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { FAQ } from "@/components/landing/FAQ";
 import { Footer } from "@/components/landing/Footer";
+import { SocialProof } from "@/components/landing/SocialProof";
+import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
+import { MobileNav } from "@/components/landing/MobileNav";
 import prisma from "@/lib/prisma";
 
 export default async function Home() {
@@ -19,43 +22,43 @@ export default async function Home() {
     console.error("Failed to fetch settings from DB, using defaults");
   }
 
+  // Safe serialization for Client Components
+  const serializedSettings = settings ? JSON.parse(JSON.stringify(settings)) : null;
+
   const defaultSettings = {
     heroTitle: "Elevate Your Natural Beauty",
     heroSubtitle: "Professional cosmetology services tailored to you.",
-    heroImage: "/beauty_hero_bg.png",
-    heroVideoUrl: null,
+    heroImage: "/hero_bg.png",
     heroMediaType: "image",
+    whatsappNumber: "233000000000"
   };
 
-  const currentSettings = settings || defaultSettings;
+  const currentSettings = serializedSettings || defaultSettings;
 
   return (
-    <main className="min-h-screen">
-      <Navbar />
+    <main className="min-h-screen pb-20 md:pb-0">
+      <MobileNav />
+      <WhatsAppFloat />
+      <Navbar settings={serializedSettings} />
+      
       <Hero 
         title={currentSettings.heroTitle} 
         subtitle={currentSettings.heroSubtitle} 
         backgroundImage={currentSettings.heroImage || defaultSettings.heroImage}
-        videoUrl={currentSettings.heroVideoUrl || undefined}
-        mediaType={currentSettings.heroMediaType as any}
+        videoUrl={currentSettings.heroVideoUrl}
+        mediaType={currentSettings.heroMediaType}
+        whatsappNumber={currentSettings.whatsappNumber}
       />
+      
       <TrustStrip />
-      <Services />
+      <SocialProof />
+      <About />
+      <Services settings={serializedSettings} />
       <Portfolio />
       <Testimonials />
-      <About />
       <FAQ />
-      <Contact />
-      <Footer settings={settings} />
-      
-      {/* Floating Booking Bar for Mobile */}
-      <div className="fixed bottom-6 left-6 right-6 z-50 md:hidden animate-bounce-in">
-        <a href="/booking">
-          <button className="w-full bg-brand-primary text-brand-secondary py-4 rounded-full shadow-2xl font-bold text-lg flex items-center justify-center gap-2 border border-white/10 backdrop-blur-sm">
-            Book Your Session Now
-          </button>
-        </a>
-      </div>
+      <Contact settings={serializedSettings} />
+      <Footer settings={serializedSettings} />
     </main>
   );
 }

@@ -1,12 +1,39 @@
 "use client";
 
-import { TrendingUp, Users, Calendar, DollarSign, ArrowUpRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { TrendingUp, Users, Calendar, DollarSign, ArrowUpRight, Loader2 } from "lucide-react";
 
 export default function AdminDashboard() {
-  const stats = [
-    { name: "Total Revenue", value: "$4,250", icon: DollarSign, trend: "+12.5%", color: "bg-emerald-100 text-emerald-600" },
-    { name: "Appointments", value: "24", icon: Calendar, trend: "+5.2%", color: "bg-brand-secondary/50 text-brand-primary" },
-    { name: "New Clients", value: "12", icon: Users, trend: "+18%", color: "bg-brand-accent/20 text-brand-accent" },
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/admin/stats")
+      .then(res => res.json())
+      .then(data => {
+        setStats(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error(err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="h-96 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 animate-spin text-brand-primary" />
+      </div>
+    );
+  }
+
+  const currency = stats?.currencySymbol || "GH₵";
+
+  const statCards = [
+    { name: "Total Revenue", value: `${currency}${stats?.totalRevenue?.toLocaleString()}`, icon: DollarSign, trend: "+12.5%", color: "bg-emerald-100 text-emerald-600" },
+    { name: "Appointments", value: stats?.appointmentCount?.toString(), icon: Calendar, trend: "+5.2%", color: "bg-brand-secondary/50 text-brand-primary" },
+    { name: "New Clients", value: stats?.newClientsCount?.toString(), icon: Users, trend: "+18%", color: "bg-brand-accent/20 text-brand-accent" },
   ];
 
   return (
@@ -16,8 +43,70 @@ export default function AdminDashboard() {
         <p className="text-zinc-500">A snapshot of your business performance this month.</p>
       </div>
 
+      {/* Quick Actions Bar */}
+      <div className="bg-brand-primary p-2 rounded-[2rem] shadow-xl flex flex-wrap gap-2">
+        <button 
+          onClick={() => window.location.href = '/admin/appointments'}
+          className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all flex items-center gap-2"
+        >
+          <Calendar className="w-4 h-4" /> Schedule Session
+        </button>
+        <button 
+          onClick={() => window.location.href = '/admin/inventory'}
+          className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all flex items-center gap-2"
+        >
+          <TrendingUp className="w-4 h-4" /> Restock Supplies
+        </button>
+        <button 
+          onClick={() => window.location.href = '/admin/portfolio'}
+          className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all flex items-center gap-2"
+        >
+          <ArrowUpRight className="w-4 h-4" /> Update Showcase
+        </button>
+      </div>
+
+      {/* System Alerts */}
+      {(stats?.alerts?.lowStock > 0 || stats?.alerts?.pendingAppointments > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {stats.alerts.pendingAppointments > 0 && (
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center gap-4 text-amber-800">
+              <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                <Calendar className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold">{stats.alerts.pendingAppointments} Pending Appointments</p>
+                <p className="text-xs opacity-80">Requires confirmation or rescheduling.</p>
+              </div>
+              <button 
+                onClick={() => window.location.href = '/admin/appointments'}
+                className="ml-auto text-xs font-bold underline"
+              >
+                Review
+              </button>
+            </div>
+          )}
+          {stats.alerts.lowStock > 0 && (
+            <div className="bg-red-50 border border-red-200 p-4 rounded-2xl flex items-center gap-4 text-red-800">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <TrendingUp className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-sm font-bold">{stats.alerts.lowStock} Low Stock Items</p>
+                <p className="text-xs opacity-80">Supplies are below their minimum threshold.</p>
+              </div>
+              <button 
+                onClick={() => window.location.href = '/admin/inventory'}
+                className="ml-auto text-xs font-bold underline"
+              >
+                Restock
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat) => (
+        {statCards.map((stat) => (
           <div key={stat.name} className="bg-white p-6 rounded-3xl border shadow-sm flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stat.color}`}>
@@ -53,7 +142,7 @@ export default function AdminDashboard() {
                   style={{ height: `${height}%` }}
                 />
                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  ${(height * 42).toLocaleString()}
+                  {currency}{(height * 42).toLocaleString()}
                 </div>
               </div>
             ))}
@@ -66,11 +155,7 @@ export default function AdminDashboard() {
         <div className="bg-white p-8 rounded-[40px] border shadow-sm">
            <h4 className="text-xl font-bold mb-8">Popular Services</h4>
            <div className="space-y-6">
-              {[
-                { name: "Precision Cut & Balayage", share: 65, color: "bg-brand-primary" },
-                { name: "Deep Cleansing Facial", share: 20, color: "bg-brand-accent" },
-                { name: "Nail Art & Therapy", share: 15, color: "bg-brand-secondary" },
-              ].map((service) => (
+              {stats?.popularServices?.length > 0 ? stats.popularServices.map((service: any) => (
                 <div key={service.name} className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="font-medium text-zinc-700">{service.name}</span>
@@ -80,7 +165,9 @@ export default function AdminDashboard() {
                     <div className={`h-full ${service.color}`} style={{ width: `${service.share}%` }} />
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="text-center text-zinc-400 py-8">No booking data available yet.</p>
+              )}
            </div>
         </div>
       </div>

@@ -45,8 +45,9 @@ export default function ClientPortalAuth() {
     <div className="min-h-screen bg-brand-primary flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-brand-accent" />
-        <Link href="/" className="absolute top-6 left-6 p-2 text-zinc-300 hover:text-brand-primary transition-colors">
-          <ArrowLeft className="w-5 h-5" />
+        <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-zinc-400 hover:text-brand-primary transition-colors text-xs font-bold uppercase tracking-widest group">
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Website
         </Link>
         
         <div className="text-center mb-10">
@@ -95,7 +96,13 @@ export default function ClientPortalAuth() {
               <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20">
                 Verify & Enter <ShieldCheck className="w-5 h-5" />
               </Button>
-              <button type="button" onClick={() => setStep("phone")} className="w-full text-xs text-zinc-400 hover:text-brand-primary transition-colors">Change Phone Number</button>
+              <button 
+                type="button" 
+                onClick={() => setStep("phone")} 
+                className="w-full py-4 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-3 h-3" /> Change Phone Number
+              </button>
             </div>
           )}
 
@@ -118,13 +125,19 @@ export default function ClientPortalAuth() {
               <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20">
                 Secure Login <ShieldCheck className="w-5 h-5" />
               </Button>
-              <button type="button" onClick={() => setStep("phone")} className="w-full text-xs text-zinc-400 hover:text-brand-primary transition-colors">Use different number</button>
+              <button 
+                type="button" 
+                onClick={() => setStep("phone")} 
+                className="w-full py-4 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-3 h-3" /> Use different number
+              </button>
             </div>
           )}
         </form>
 
         <div className="mt-12 text-center border-t pt-8">
-           <p className="text-[10px] text-zinc-400 uppercase tracking-widest">Powered by Nexus Beauty Infrastructure</p>
+           <p className="text-[10px] text-zinc-400 uppercase tracking-widest">Powered by LOU Beauty Hub Infrastructure</p>
         </div>
       </div>
     </div>

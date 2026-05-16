@@ -9,15 +9,21 @@ export function Footer({ settings }: { settings?: any }) {
   const studioName = settings?.companyName || "Nexus";
   const contactEmail = settings?.contactEmail || "studio@nexus.com";
   const contactPhone = settings?.contactPhone || "+233 00 000 0000";
-  const contactAddress = settings?.contactAddress || "Accra, Ghana • East Legon";
+  const contactAddress = settings?.address || "Accra, Ghana • East Legon";
 
   return (
-    <footer className="bg-zinc-900 text-white pt-24 pb-12 border-t border-white/5">
+    <footer className="bg-[#1A1A1A] text-white pt-24 pb-12 border-t border-brand-accent/20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           {/* Brand Column */}
           <div className="space-y-6">
-            <h3 className="text-3xl font-serif text-brand-secondary">{studioName}</h3>
+            {settings?.logoUrl ? (
+              <div className="relative w-16 h-16 overflow-hidden rounded-xl">
+                <img src={settings.logoUrl} alt={studioName} className="w-full h-full object-contain" />
+              </div>
+            ) : (
+              <h3 className="text-3xl font-serif text-brand-secondary">{studioName}</h3>
+            )}
             <p className="text-zinc-400 text-sm leading-relaxed">
               Elevating natural beauty through technical precision and organic-infused care. Your journey to transformation starts here.
             </p>
@@ -37,6 +43,16 @@ export function Footer({ settings }: { settings?: any }) {
                   <TikTok className="w-5 h-5" />
                 </Link>
               )}
+              {settings?.youtubeUrl && (
+                <Link href={settings.youtubeUrl} target="_blank" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-brand-primary transition-all">
+                  <Youtube className="w-5 h-5" />
+                </Link>
+              )}
+              {settings?.twitterUrl && (
+                <Link href={settings.twitterUrl} target="_blank" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-brand-primary transition-all">
+                  <Twitter className="w-5 h-5" />
+                </Link>
+              )}
               {settings?.whatsappNumber && (
                 <Link href={`https://wa.me/${settings.whatsappNumber}`} target="_blank" className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-brand-secondary hover:text-brand-primary transition-all">
                   <Phone className="w-5 h-5" />
@@ -49,10 +65,11 @@ export function Footer({ settings }: { settings?: any }) {
           <div className="space-y-6">
             <h4 className="text-xs font-bold uppercase tracking-widest text-brand-secondary">Explore</h4>
             <nav className="flex flex-col gap-4">
-              <Link href="#services" className="text-zinc-400 hover:text-white transition-colors text-sm">Services</Link>
-              <Link href="#portfolio" className="text-zinc-400 hover:text-white transition-colors text-sm">Portfolio</Link>
+              <Link href="/#services" className="text-zinc-400 hover:text-white transition-colors text-sm">Services</Link>
+              <Link href="/#portfolio" className="text-zinc-400 hover:text-white transition-colors text-sm">Portfolio</Link>
               <Link href="/portal" className="text-zinc-400 hover:text-white transition-colors text-sm">Client Portal</Link>
               <Link href="/booking" className="text-zinc-400 hover:text-white transition-colors text-sm">Book Session</Link>
+              <Link href="/admin" className="text-zinc-400 hover:text-white transition-colors text-sm font-bold border-t border-white/5 pt-2">Admin Portal</Link>
             </nav>
           </div>
 
@@ -91,8 +108,12 @@ export function Footer({ settings }: { settings?: any }) {
           <p className="text-[10px] text-zinc-500 uppercase tracking-widest">
             © {currentYear} {studioName} Cosmetology Studio. All rights reserved.
           </p>
-          <div className="flex items-center gap-6">
-            <Link href="/admin/settings" className="text-[10px] text-zinc-600 hover:text-brand-secondary uppercase tracking-widest transition-colors font-bold">Admin Engine</Link>
+          <div className="flex flex-col md:flex-row items-center gap-6">
+            <Link href="/admin/settings">
+              <button className="bg-white/10 hover:bg-white/20 px-6 py-2 rounded-full text-[10px] uppercase tracking-widest transition-all font-bold border border-white/5">
+                Admin Control Center
+              </button>
+            </Link>
             <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Technical Infrastructure by Antigravity</p>
           </div>
         </div>

@@ -6,10 +6,10 @@ import { Palette, Layout, Type, Image as ImageIcon, CheckCircle, Package } from 
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
-    companyName: "Beauty Studio",
-    primaryColor: "#052e16",
-    secondaryColor: "#fef3c7",
-    accentColor: "#10b981",
+    companyName: "LOU Beauty Hub",
+    primaryColor: "#E8B8B0",
+    secondaryColor: "#FFF9F6",
+    accentColor: "#D4AF37",
     heroTitle: "Elevate Your Natural Beauty",
     heroSubtitle: "Professional cosmetology services tailored to you.",
     heroImage: "/beauty_hero_bg.png",
@@ -20,6 +20,12 @@ export default function SettingsPage() {
     instagramUrl: "",
     facebookUrl: "",
     tiktokUrl: "",
+    youtubeUrl: "",
+    twitterUrl: "",
+    contactEmail: "",
+    contactPhone: "",
+    address: "",
+    currencySymbol: "GH₵",
     enableOTP: false,
   });
 
@@ -48,6 +54,27 @@ export default function SettingsPage() {
     setTimeout(() => setSaveStatus("idle"), 2000);
   };
 
+  const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSettings({ ...settings, [field]: data.url });
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    }
+  };
+
   if (loading && !settings.companyName) return <div className="flex items-center justify-center h-96">Loading Studio Engine...</div>;
 
   return (
@@ -70,11 +97,11 @@ export default function SettingsPage() {
                 <div className="flex gap-2">
                   <input 
                     type="color" 
-                    value={settings.primaryColor}
+                    value={settings.primaryColor || "#E8B8B0"}
                     onChange={(e) => setSettings({...settings, primaryColor: e.target.value})}
                     className="w-10 h-10 rounded-lg border-none p-0 cursor-pointer overflow-hidden"
                   />
-                  <input type="text" value={settings.primaryColor} className="flex-1 text-xs border rounded-lg px-2" readOnly />
+                  <input type="text" value={settings.primaryColor || ""} className="flex-1 text-xs border rounded-lg px-2" readOnly />
                 </div>
               </div>
               <div className="space-y-2">
@@ -82,11 +109,11 @@ export default function SettingsPage() {
                 <div className="flex gap-2">
                   <input 
                     type="color" 
-                    value={settings.secondaryColor}
+                    value={settings.secondaryColor || "#FFF9F6"}
                     onChange={(e) => setSettings({...settings, secondaryColor: e.target.value})}
                     className="w-10 h-10 rounded-lg border-none p-0 cursor-pointer"
                   />
-                  <input type="text" value={settings.secondaryColor} className="flex-1 text-xs border rounded-lg px-2" readOnly />
+                  <input type="text" value={settings.secondaryColor || ""} className="flex-1 text-xs border rounded-lg px-2" readOnly />
                 </div>
               </div>
               <div className="space-y-2">
@@ -94,11 +121,11 @@ export default function SettingsPage() {
                 <div className="flex gap-2">
                   <input 
                     type="color" 
-                    value={settings.accentColor}
+                    value={settings.accentColor || "#D4AF37"}
                     onChange={(e) => setSettings({...settings, accentColor: e.target.value})}
                     className="w-10 h-10 rounded-lg border-none p-0 cursor-pointer"
                   />
-                  <input type="text" value={settings.accentColor} className="flex-1 text-xs border rounded-lg px-2" readOnly />
+                  <input type="text" value={settings.accentColor || ""} className="flex-1 text-xs border rounded-lg px-2" readOnly />
                 </div>
               </div>
             </div>
@@ -115,7 +142,7 @@ export default function SettingsPage() {
                   <label className="text-sm font-medium text-zinc-700">Company Name</label>
                   <input 
                     type="text" 
-                    value={settings.companyName}
+                    value={settings.companyName || ""}
                     onChange={(e) => setSettings({...settings, companyName: e.target.value})}
                     className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
                   />
@@ -124,7 +151,7 @@ export default function SettingsPage() {
                   <label className="text-sm font-medium text-zinc-700">Hero Title</label>
                   <input 
                     type="text" 
-                    value={settings.heroTitle}
+                    value={settings.heroTitle || ""}
                     onChange={(e) => setSettings({...settings, heroTitle: e.target.value})}
                     className="w-full px-4 py-3 rounded-xl border"
                   />
@@ -132,7 +159,7 @@ export default function SettingsPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-zinc-700">Hero Subtitle</label>
                   <textarea 
-                    value={settings.heroSubtitle}
+                    value={settings.heroSubtitle || ""}
                     onChange={(e) => setSettings({...settings, heroSubtitle: e.target.value})}
                     className="w-full px-4 py-3 rounded-xl border h-24"
                   />
@@ -141,8 +168,8 @@ export default function SettingsPage() {
                 {/* Gateways & Integrations */}
                 <div className="pt-8 border-t space-y-6">
                   <div className="flex items-center gap-2 text-zinc-400 mb-2">
-                    <Package className="w-4 h-4" />
-                    <span className="text-xs font-bold uppercase tracking-widest">Gateways & Integrations</span>
+                    <ImageIcon className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-widest">Hero Media & Branding</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
@@ -163,14 +190,18 @@ export default function SettingsPage() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-zinc-700">Hero {settings.heroMediaType === 'image' ? 'Image' : 'Video'} URL</label>
-                      <input 
-                        type="text" 
-                        value={settings.heroMediaType === 'image' ? settings.heroImage : settings.heroVideoUrl}
-                        onChange={(e) => setSettings({...settings, [settings.heroMediaType === 'image' ? 'heroImage' : 'heroVideoUrl']: e.target.value})}
-                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
-                        placeholder="https://..."
-                      />
+                      <label className="text-sm font-medium text-zinc-700">
+                        Upload Hero {settings.heroMediaType === 'image' ? 'Image' : 'Video'}
+                      </label>
+                      <div className="flex flex-col gap-2">
+                        <input 
+                          type="file" 
+                          accept={settings.heroMediaType === 'image' ? "image/*" : "video/*"}
+                          onChange={(e) => uploadFile(e, settings.heroMediaType === 'image' ? 'heroImage' : 'heroVideoUrl')}
+                          className="text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer"
+                        />
+                        <p className="text-[10px] text-zinc-400 truncate">Current: {settings.heroMediaType === 'image' ? settings.heroImage : settings.heroVideoUrl}</p>
+                      </div>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
@@ -204,6 +235,64 @@ export default function SettingsPage() {
                         placeholder="e.g. 233..."
                       />
                     </div>
+                  </div>
+
+                  {/* Social Media & Contact */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">YouTube URL</label>
+                      <input 
+                        type="text" 
+                        value={settings.youtubeUrl || ''}
+                        onChange={(e) => setSettings({...settings, youtubeUrl: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border"
+                        placeholder="https://youtube.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Twitter URL</label>
+                      <input 
+                        type="text" 
+                        value={settings.twitterUrl || ''}
+                        onChange={(e) => setSettings({...settings, twitterUrl: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border"
+                        placeholder="https://twitter.com/..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Studio Email</label>
+                      <input 
+                        type="email" 
+                        value={settings.contactEmail || ''}
+                        onChange={(e) => setSettings({...settings, contactEmail: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border"
+                        placeholder="studio@..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Studio Phone</label>
+                      <input 
+                        type="text" 
+                        value={settings.contactPhone || ''}
+                        onChange={(e) => setSettings({...settings, contactPhone: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border"
+                        placeholder="+233..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 pt-4">
+                    <label className="text-sm font-medium text-zinc-700">Studio Physical Address</label>
+                    <input 
+                      type="text" 
+                      value={settings.address || ''}
+                      onChange={(e) => setSettings({...settings, address: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border"
+                      placeholder="Street, City, Country"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-zinc-700">Paystack Public Key</label>
                       <input 
@@ -212,6 +301,16 @@ export default function SettingsPage() {
                         onChange={(e) => setSettings({...settings, paystackPublicKey: e.target.value})}
                         className="w-full px-4 py-3 rounded-xl border"
                         placeholder="pk_test_..."
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Currency Symbol</label>
+                      <input 
+                        type="text" 
+                        value={settings.currencySymbol || 'GH₵'}
+                        onChange={(e) => setSettings({...settings, currencySymbol: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none" 
+                        placeholder="GH₵ or $"
                       />
                     </div>
                   </div>
@@ -275,10 +374,12 @@ export default function SettingsPage() {
                 <div className="h-20 rounded-lg bg-zinc-100 p-2">
                    <div className="h-1 w-full bg-zinc-200 rounded mb-1" />
                    <div className="h-[2px] w-3/4 bg-zinc-200 rounded" />
+                   <div className="mt-4 text-[8px] font-bold" style={{ color: settings.primaryColor }}>{settings.currencySymbol || 'GH₵'}0.00</div>
                 </div>
                 <div className="h-20 rounded-lg bg-zinc-100 p-2">
                    <div className="h-1 w-full bg-zinc-200 rounded mb-1" />
                    <div className="h-[2px] w-3/4 bg-zinc-200 rounded" />
+                   <div className="mt-4 text-[8px] font-bold" style={{ color: settings.primaryColor }}>{settings.currencySymbol || 'GH₵'}0.00</div>
                 </div>
               </div>
             </div>

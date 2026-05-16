@@ -8,6 +8,7 @@ export default function AdminPortfolio() {
   const [items, setItems] = useState<any[]>([]);
   const [isAdding, setIsAdding] = useState(false);
   const [newItem, setNewItem] = useState({ title: "", category: "Bridal", imageUrl: "" });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetch("/api/portfolio").then(res => res.json()).then(data => {
@@ -27,6 +28,30 @@ export default function AdminPortfolio() {
       setItems([added, ...items]);
       setIsAdding(false);
       setNewItem({ title: "", category: "Bridal", imageUrl: "" });
+    }
+  };
+
+  const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setNewItem({ ...newItem, imageUrl: data.url });
+      }
+    } catch (error) {
+      console.error("Upload failed:", error);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -79,14 +104,18 @@ export default function AdminPortfolio() {
               </select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-zinc-400">Image URL / Video URL</label>
-              <input 
-                value={newItem.imageUrl} 
-                onChange={e => setNewItem({...newItem, imageUrl: e.target.value})}
-                className="w-full px-5 py-4 rounded-2xl border focus:ring-2 focus:ring-brand-primary outline-none" 
-                placeholder="https://..."
-                required
-              />
+              <label className="text-xs font-bold uppercase text-zinc-400">Media (Image/Video)</label>
+              <div className="flex flex-col gap-2">
+                <input 
+                  type="file" 
+                  accept="image/*,video/*"
+                  onChange={uploadFile}
+                  className="text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer"
+                  required={!newItem.imageUrl}
+                />
+                {uploading && <p className="text-[10px] text-brand-primary animate-pulse">Uploading...</p>}
+                {newItem.imageUrl && <p className="text-[10px] text-emerald-600 truncate">Uploaded: {newItem.imageUrl}</p>}
+              </div>
             </div>
             <div className="md:col-span-3 flex justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={() => setIsAdding(false)} className="rounded-2xl px-8">Cancel</Button>

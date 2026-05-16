@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Play, Maximize2 } from "lucide-react";
+import { Play, Maximize2, XCircle } from "lucide-react";
 
 export function Portfolio() {
   const [items, setItems] = useState<any[]>([]);
   const [filter, setFilter] = useState("All");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/portfolio").then(res => res.json()).then(data => {
@@ -17,6 +18,7 @@ export function Portfolio() {
   const filteredItems = filter === "All" ? items : items.filter(i => i.category === filter);
 
   return (
+    <>
     <section className="py-24 bg-zinc-50" id="portfolio">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
@@ -47,6 +49,7 @@ export function Portfolio() {
           {filteredItems.length > 0 ? filteredItems.map((item) => (
             <div 
               key={item.id} 
+              onClick={() => setSelectedImage(item.imageUrl)}
               className="group relative aspect-[4/5] rounded-[40px] overflow-hidden cursor-pointer bg-white shadow-sm hover:shadow-2xl transition-all duration-700"
             >
               {item.imageUrl.includes('.mp4') ? (
@@ -70,7 +73,13 @@ export function Portfolio() {
                 <h4 className="text-2xl font-serif mb-2">{item.title}</h4>
                 <div className="w-8 h-[1px] bg-white/40 mb-4" />
                 <div className="flex gap-4">
-                   <button className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors">
+                   <button 
+                     onClick={(e) => {
+                       e.stopPropagation();
+                       setSelectedImage(item.imageUrl);
+                     }}
+                     className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors"
+                   >
                       <Maximize2 className="w-4 h-4" />
                    </button>
                 </div>
@@ -89,5 +98,37 @@ export function Portfolio() {
         </div>
       </div>
     </section>
+    
+    {/* Lightbox Overlay */}
+    {selectedImage && (
+      <div 
+        className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 md:p-12 animate-fade-in"
+        onClick={() => setSelectedImage(null)}
+      >
+        <button 
+          className="absolute top-8 right-8 text-white/50 hover:text-white transition-colors"
+          onClick={() => setSelectedImage(null)}
+        >
+          <XCircle className="w-10 h-10" />
+        </button>
+        <div className="relative w-full h-full max-w-5xl max-h-[85vh] flex items-center justify-center">
+          {selectedImage.includes('.mp4') ? (
+            <video 
+              src={selectedImage} 
+              controls 
+              autoPlay 
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl" 
+            />
+          ) : (
+            <img 
+              src={selectedImage} 
+              alt="Zoomed Portfolio" 
+              className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl"
+            />
+          )}
+        </div>
+      </div>
+    )}
+    </>
   );
 }

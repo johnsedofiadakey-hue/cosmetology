@@ -91,13 +91,20 @@ export default function AdminInventory() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {items.map((item) => {
           const isLow = item.quantity <= item.minThreshold;
+          const willBeLow = item.isForecastingLow && !isLow;
           return (
-            <div key={item.id} className={`bg-white p-6 rounded-3xl border transition-all ${isLow ? 'border-red-200 ring-2 ring-red-50' : 'hover:shadow-md'}`}>
+            <div key={item.id} className={`bg-white p-6 rounded-3xl border transition-all ${isLow ? 'border-red-200 ring-2 ring-red-50' : willBeLow ? 'border-amber-200 ring-2 ring-amber-50' : 'hover:shadow-md'}`}>
               <div className="flex justify-between items-start mb-6">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isLow ? 'bg-red-100 text-red-600' : 'bg-brand-secondary/50 text-brand-primary'}`}>
-                  {isLow ? <AlertCircle className="w-6 h-6" /> : <Package className="w-6 h-6" />}
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isLow ? 'bg-red-100 text-red-600' : willBeLow ? 'bg-amber-100 text-amber-600' : 'bg-brand-secondary/50 text-brand-primary'}`}>
+                  {isLow ? <AlertCircle className="w-6 h-6" /> : willBeLow ? <Clock className="w-6 h-6" /> : <Package className="w-6 h-6" />}
                 </div>
-                {isLow && <span className="text-[10px] font-bold text-red-600 uppercase tracking-tighter">Low Stock</span>}
+                <div className="text-right">
+                  {isLow ? (
+                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-tighter">Low Stock</span>
+                  ) : willBeLow ? (
+                    <span className="text-[10px] font-bold text-amber-600 uppercase tracking-tighter">Shortage Predicted</span>
+                  ) : null}
+                </div>
               </div>
               <h4 className="text-lg font-bold truncate">{item.name}</h4>
               <div className="mt-4 flex items-end justify-between">
@@ -105,13 +112,25 @@ export default function AdminInventory() {
                   <p className="text-2xl font-bold">{item.quantity} <span className="text-sm font-medium text-zinc-400">{item.unit}</span></p>
                   <div className="w-full bg-zinc-100 h-1.5 rounded-full mt-2 overflow-hidden">
                     <div 
-                      className={`h-full rounded-full ${isLow ? 'bg-red-500' : 'bg-brand-accent'}`} 
+                      className={`h-full rounded-full ${isLow ? 'bg-red-500' : willBeLow ? 'bg-amber-500' : 'bg-brand-accent'}`} 
                       style={{ width: `${Math.min((item.quantity / (item.minThreshold * 5)) * 100, 100)}%` }}
                     />
                   </div>
+                  {item.projectedUsage > 0 && (
+                    <div className="mt-3 p-2 bg-zinc-50 rounded-lg border border-dashed">
+                      <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-1">Forecast</p>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-zinc-400">Reserved:</span>
+                        <span className="font-bold">-{item.projectedUsage}{item.unit}</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <button className="p-2 hover:bg-zinc-50 rounded-xl text-zinc-400">
+                <button className="p-2 hover:bg-zinc-50 rounded-xl text-zinc-400 group relative">
                   <BarChart3 className="w-5 h-5" />
+                  <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-zinc-900 text-white text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                    Projected balance of {item.projectedBalance}{item.unit} after all upcoming sessions.
+                  </div>
                 </button>
               </div>
             </div>

@@ -5,16 +5,18 @@ export interface InvoiceData {
   serviceName: string;
   amount: number;
   companyName: string;
+  currencySymbol?: string;
 }
 
 export function generateInvoiceSummary(data: InvoiceData) {
+  const symbol = data.currencySymbol || "GH₵";
   return `
     INVOICE: ${data.invoiceNumber}
     DATE: ${data.date}
     -------------------------
     CLIENT: ${data.clientName}
     SERVICE: ${data.serviceName}
-    TOTAL: $${data.amount.toFixed(2)}
+    TOTAL: ${symbol}${data.amount.toFixed(2)}
     -------------------------
     Thank you for choosing ${data.companyName}!
   `;
