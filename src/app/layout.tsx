@@ -14,6 +14,11 @@ export async function generateMetadata(): Promise<Metadata> {
     title: settings?.companyName || "Beauty Studio | Professional Cosmetology",
     description: settings?.heroSubtitle || "Elevate your natural beauty with our professional services.",
     manifest: "/manifest.json",
+    icons: {
+      icon: settings?.logoUrl || "/logo.jpg",
+      shortcut: settings?.logoUrl || "/logo.jpg",
+      apple: settings?.logoUrl || "/logo.jpg",
+    },
     appleWebApp: {
       capable: true,
       title: settings?.companyName || "Nexus Beauty",

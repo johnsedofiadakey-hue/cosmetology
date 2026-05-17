@@ -28,8 +28,8 @@ export function Navbar({ settings }: { settings?: any }) {
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
           {settings?.logoUrl ? (
-            <div className="relative w-12 h-12 overflow-hidden rounded-lg">
-              <img src={settings.logoUrl} alt={studioName} className="w-full h-full object-contain" />
+            <div className="relative w-12 h-12 overflow-hidden rounded-full border border-brand-accent/30 shadow-md">
+              <img src={settings.logoUrl} alt={studioName} className="w-full h-full object-cover scale-[1.03]" />
             </div>
           ) : (
             <div className="w-10 h-10 rounded-xl bg-brand-accent flex items-center justify-center text-white shadow-xl group-hover:rotate-12 transition-transform duration-500">

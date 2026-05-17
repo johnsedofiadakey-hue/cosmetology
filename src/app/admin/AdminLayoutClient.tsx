@@ -40,7 +40,7 @@ export default function AdminLayoutClient({
       <aside className="w-64 bg-zinc-900 text-white flex flex-col">
         <div className="p-8 text-2xl font-serif text-brand-secondary border-b border-white/10 flex flex-col gap-2">
           {settings?.logoUrl && (
-            <img src={settings.logoUrl} alt={studioName} className="w-10 h-10 object-contain rounded-lg" />
+            <img src={settings.logoUrl} alt={studioName} className="w-10 h-10 object-cover rounded-full border border-white/20" />
           )}
           <span>{studioName}</span>
           <span className="text-[10px] uppercase tracking-widest opacity-50 font-sans">Admin Portal</span>

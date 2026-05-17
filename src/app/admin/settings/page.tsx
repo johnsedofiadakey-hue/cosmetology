@@ -17,6 +17,7 @@ export default function SettingsPage() {
     heroImage: "/beauty_hero_bg.png",
     heroVideoUrl: "",
     heroMediaType: "image",
+    logoUrl: "",
     paystackPublicKey: "",
     whatsappNumber: "",
     instagramUrl: "",
@@ -201,7 +202,7 @@ export default function SettingsPage() {
                     <ImageIcon className="w-4 h-4" />
                     <span className="text-xs font-bold uppercase tracking-widest">Hero Media & Branding</span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-zinc-700">Hero Media Type</label>
                       <div className="flex bg-zinc-100 p-1 rounded-xl">
@@ -231,6 +232,18 @@ export default function SettingsPage() {
                           className="text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer"
                         />
                         <p className="text-[10px] text-zinc-400 truncate">Current: {settings.heroMediaType === 'image' ? settings.heroImage : settings.heroVideoUrl}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Company Logo</label>
+                      <div className="flex flex-col gap-2">
+                        <input 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => uploadFile(e, 'logoUrl')}
+                          className="text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer"
+                        />
+                        <p className="text-[10px] text-zinc-400 truncate">Current Logo: {settings.logoUrl || "None"}</p>
                       </div>
                     </div>
                   </div>
@@ -381,7 +394,16 @@ export default function SettingsPage() {
           <div className="rounded-2xl overflow-hidden bg-white aspect-[9/16] border-4 border-zinc-800 relative scale-100">
             {/* Header */}
             <div className="h-10 px-4 flex items-center justify-between border-b" style={{ backgroundColor: 'white' }}>
-              <span className="text-[10px] font-serif" style={{ color: settings.textPrimaryColor || '#18181b' }}>{settings.companyName}</span>
+              <div className="flex items-center gap-1.5 overflow-hidden">
+                {settings.logoUrl ? (
+                  <img src={settings.logoUrl} className="w-4 h-4 object-contain rounded-sm" alt="logo" />
+                ) : (
+                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: settings.primaryColor }} />
+                )}
+                <span className="text-[8px] font-serif font-bold truncate max-w-[120px]" style={{ color: settings.textPrimaryColor || '#18181b' }}>
+                  {settings.companyName}
+                </span>
+              </div>
               <div className="w-4 h-4 rounded-full" style={{ backgroundColor: settings.primaryColor }} />
             </div>
             

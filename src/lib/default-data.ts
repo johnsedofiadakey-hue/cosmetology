@@ -1,7 +1,7 @@
 export const defaultSettings = {
   id: 1,
   companyName: "LOU Beauty Hub",
-  logoUrl: "",
+  logoUrl: "/logo.jpg",
   primaryColor: "#052e16",
   secondaryColor: "#fef3c7",
   accentColor: "#10b981",
