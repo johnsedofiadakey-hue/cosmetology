@@ -3,7 +3,7 @@ import admin from 'firebase-admin';
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.applicationDefault(),
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "cosmetologysystem.firebasestorage.app",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "152762339392-asia-east1-blueprint-config",
   });
 }
 

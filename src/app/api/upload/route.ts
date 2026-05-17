@@ -34,11 +34,7 @@ export async function POST(request: Request) {
       }
     });
 
-    // Make the file public so we can access it via URL
-    // Note: This requires the service account to have 'storage.objects.setMetadata' permissions
-    await blob.makePublic();
-
-    const url = `https://storage.googleapis.com/${bucket.name}/${filename}`;
+    const url = `/api/media/${filename}`;
 
     return NextResponse.json({ success: true, url });
   } catch (error) {
