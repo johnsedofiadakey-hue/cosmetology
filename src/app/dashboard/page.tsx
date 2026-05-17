@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Calendar, Clock, CreditCard, FileText, Scissors, User as UserIcon, History as TreatmentHistory, ArrowLeft, XCircle, LogOut } from \"lucide-react\";
-import { signOut } from \"next-auth/react\";
+import { Calendar, Clock, CreditCard, FileText, Scissors, User as UserIcon, History as TreatmentHistory, ArrowLeft, XCircle, LogOut } from "lucide-react";
+import { signOut } from "next-auth/react";
 
 export default function ClientDashboard() {
   const router = useRouter();
@@ -90,7 +90,7 @@ export default function ClientDashboard() {
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="flex items-center gap-3 px-6 py-4 rounded-2xl transition-all w-full text-red-400 hover:bg-red-50 hover:text-red-600 font-bold"
               >
-                <LogOut className=\"w-5 h-5\" /> Logout
+                <LogOut className="w-5 h-5" /> Logout
               </button>
             </div>
           </div>

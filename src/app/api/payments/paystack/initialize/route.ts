@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { getServerSession } from \"next-auth/next\";
-import { authOptions } from \"@/lib/auth\";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth";
 
 export async function POST(request: Request) {
   try {
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
 
     // IF NO KEY, return a "SIMULATED" success for now so they can test the flow
     if (!PAYSTACK_SECRET_KEY) {
-      console.warn(\"[PAYSTACK] No PAYSTACK_SECRET_KEY found. Simulating initialization.\");
+      console.warn("[PAYSTACK] No PAYSTACK_SECRET_KEY found. Simulating initialization.");
       return NextResponse.json({ 
         success: true, 
         simulated: true,

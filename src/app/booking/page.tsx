@@ -111,9 +111,9 @@ export default function BookingPage() {
 
       // If User, Redirect to Paystack
       setIsRedirecting(true);
-      const payRes = await fetch(\"/api/payments/paystack/initialize\", {
-        method: \"POST\",
-        headers: { \"Content-Type\": \"application/json\" },
+      const payRes = await fetch("/api/payments/paystack/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           appointmentId: appointment.id,
           email: clientData.email,
@@ -125,12 +125,12 @@ export default function BookingPage() {
       if (payData.success && payData.authorization_url) {
         window.location.href = payData.authorization_url;
       } else {
-        alert(\"Payment initialization failed. Please contact us.\");
+        alert("Payment initialization failed. Please contact us.");
         setIsRedirecting(false);
       }
     } else {
       const errorData = await res.json();
-      alert(errorData.error || \"Failed to confirm booking. Please try again.\");
+      alert(errorData.error || "Failed to confirm booking. Please try again.");
     }
   };
 
@@ -408,18 +408,18 @@ export default function BookingPage() {
               </button>
             )}
             <Button 
-              size=\"lg\" 
-              className=\"flex-1 sm:flex-none ml-4 h-14 sm:h-12 font-bold text-lg\"
+              size="lg"
+              className="flex-1 sm:flex-none ml-4 h-14 sm:h-12 font-bold text-lg"
               onClick={handleNext}
               disabled={
                 isRedirecting ||
-                (currentStep === \"service\" && selectedServices.length === 0) ||
-                (currentStep === \"datetime\" && !selectedTime) ||
-                (currentStep === \"details\" && (!clientData.name || !clientData.email))
+                (currentStep === "service" && selectedServices.length === 0) ||
+                (currentStep === "datetime" && !selectedTime) ||
+                (currentStep === "details" && (!clientData.name || !clientData.email))
               }
             >
-              {isRedirecting ? \"Redirecting...\" : currentStep === \"payment\" ? \"Confirm & Pay\" : \"Continue\"}
-              {!isRedirecting && currentStep !== \"payment\" && <ChevronRight className=\"w-5 h-5 ml-2\" />}
+              {isRedirecting ? "Redirecting..." : currentStep === "payment" ? "Confirm & Pay" : "Continue"}
+              {!isRedirecting && currentStep !== "payment" && <ChevronRight className="w-5 h-5 ml-2" />}
             </Button>
           </div>
         </div>

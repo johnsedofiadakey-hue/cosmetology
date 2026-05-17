@@ -15,7 +15,7 @@ export async function GET() {
       include: {
         user: true,
         appointments: {
-          include: { service: true },
+          include: { services: true },
           orderBy: { startTime: 'desc' }
         },
         formulations: {
@@ -38,7 +38,7 @@ export async function GET() {
         history: client.appointments.map(apt => ({
           id: apt.id,
           date: new Date(apt.startTime).toLocaleDateString(),
-          service: apt.service.name,
+          service: apt.services.map(service => service.name).join(', ') || 'No services',
           amount: apt.totalPrice,
           notes: "Service completed."
         })),

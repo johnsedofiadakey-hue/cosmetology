@@ -27,7 +27,7 @@ export async function PATCH(
         where: { id },
         data: updateData,
         include: {
-          service: {
+          services: {
             include: {
               materials: true
             }
@@ -38,22 +38,24 @@ export async function PATCH(
       // If marked as COMPLETED, deplete inventory and create engagement record
       if (status === 'COMPLETED') {
         // 1. Deplete Inventory
-        for (const material of appointment.service.materials) {
-          await tx.inventoryItem.update({
-            where: { id: material.inventoryItemId },
-            data: {
-              quantity: {
-                decrement: material.estimatedUsage
+        for (const service of appointment.services) {
+          for (const material of service.materials) {
+            await tx.inventoryItem.update({
+              where: { id: material.inventoryItemId },
+              data: {
+                quantity: {
+                  decrement: material.estimatedUsage
+                }
               }
-            }
-          });
+            });
+          }
         }
 
         // 2. Create Engagement Record (Treatment Journey)
         await tx.formulation.create({
           data: {
             clientId: appointment.clientId,
-            title: `Treatment Completed: ${appointment.service.name}`,
+            title: `Treatment Completed: ${appointment.services.map(service => service.name).join(', ')}`,
             description: `Session finalized on ${new Date().toLocaleDateString()}. Your skin/hair is glowing! View your updated history in the portal.`,
           }
         });

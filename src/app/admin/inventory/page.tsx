@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Package, Plus, AlertCircle, RefreshCw, BarChart3 } from "lucide-react";
+import { Package, Plus, AlertCircle, RefreshCw, BarChart3, Clock } from "lucide-react";
 
 export default function AdminInventory() {
   const [items, setItems] = useState<any[]>([]);
