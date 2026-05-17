@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { createId, readStore, updateStore } from '@/lib/data-store';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -9,35 +9,20 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const items = await prisma.inventoryItem.findMany({
-    include: {
-      serviceUsage: {
-        include: {
-          service: {
-            include: {
-              appointments: {
-                where: {
-                  status: {
-                    in: ['PENDING', 'CONFIRMED']
-                  },
-                  startTime: {
-                    gte: new Date()
-                  }
-                }
-              }
-            }
-          }
-        }
+  const store = await readStore();
+  const itemsWithForecast = store.inventory.map((item) => {
+    let projectedUsage = 0;
+    for (const service of store.services) {
+      for (const material of service.materials || []) {
+        if (material.inventoryItemId !== item.id) continue;
+        const upcomingApptsCount = store.appointments.filter((apt) => (
+          apt.serviceIds.includes(service.id) &&
+          ['PENDING', 'CONFIRMED'].includes(apt.status) &&
+          new Date(apt.startTime) >= new Date()
+        )).length;
+        projectedUsage += upcomingApptsCount * material.estimatedUsage;
       }
     }
-  });
-
-  const itemsWithForecast = items.map(item => {
-    let projectedUsage = 0;
-    item.serviceUsage.forEach(usage => {
-      const upcomingApptsCount = usage.service.appointments.length;
-      projectedUsage += upcomingApptsCount * usage.estimatedUsage;
-    });
 
     return {
       ...item,
@@ -58,13 +43,21 @@ export async function POST(request: Request) {
 
   try {
     const data = await request.json();
-    const item = await prisma.inventoryItem.create({
-      data: {
+    const item = await updateStore((store) => {
+      const item = {
+        id: createId("inventory"),
         name: data.name,
-        quantity: data.quantity,
+        sku: data.sku || "",
+        quantity: Number(data.quantity),
         unit: data.unit,
-        minThreshold: data.minThreshold || 5.0
-      }
+        minThreshold: Number(data.minThreshold || 5),
+        lastRestocked: new Date().toISOString(),
+        projectedUsage: 0,
+        projectedBalance: Number(data.quantity),
+        isForecastingLow: false,
+      };
+      store.inventory.push(item);
+      return item;
     });
     return NextResponse.json(item);
   } catch (error) {

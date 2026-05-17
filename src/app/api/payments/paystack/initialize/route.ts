@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { updateStore } from '@/lib/data-store';
 
 export async function POST(request: Request) {
   try {
@@ -49,9 +49,9 @@ export async function POST(request: Request) {
     }
 
     // 3. Update appointment with payment reference
-    await prisma.appointment.update({
-      where: { id: appointmentId },
-      data: { paymentRef: data.data.reference }
+    await updateStore((store) => {
+      const appointment = store.appointments.find((item) => item.id === appointmentId);
+      if (appointment) appointment.paymentRef = data.data.reference;
     });
 
     return NextResponse.json({ 

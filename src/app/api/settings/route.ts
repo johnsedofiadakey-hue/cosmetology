@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { readStore } from '@/lib/data-store';
 
 export async function GET() {
   try {
-    const settings = await prisma.systemSettings.findFirst();
+    const settings = (await readStore()).settings;
     // Return only public fields
     return NextResponse.json({
       companyName: settings?.companyName,

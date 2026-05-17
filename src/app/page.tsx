@@ -11,13 +11,15 @@ import { Footer } from "@/components/landing/Footer";
 import { SocialProof } from "@/components/landing/SocialProof";
 import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
 import { MobileNav } from "@/components/landing/MobileNav";
-import prisma from "@/lib/prisma";
+import { readStore } from "@/lib/data-store";
+
+export const dynamic = "force-dynamic";
 
 export default async function Home() {
   let settings;
   
   try {
-    settings = await prisma.systemSettings.findFirst();
+    settings = (await readStore()).settings;
   } catch (e) {
     console.error("Failed to fetch settings from DB, using defaults");
   }
@@ -28,7 +30,7 @@ export default async function Home() {
   const defaultSettings = {
     heroTitle: "Elevate Your Natural Beauty",
     heroSubtitle: "Professional cosmetology services tailored to you.",
-    heroImage: "/hero_bg.png",
+    heroImage: "/beauty_hero_bg.png",
     heroMediaType: "image",
     whatsappNumber: "233000000000"
   };

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { revalidatePath } from 'next/cache';
+import { readStore, updateStore } from '@/lib/data-store';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -11,7 +11,7 @@ export async function GET() {
   }
 
   try {
-    const settings = await prisma.systemSettings.findFirst();
+    const settings = (await readStore()).settings;
     return NextResponse.json(settings);
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
@@ -27,10 +27,14 @@ export async function PATCH(request: Request) {
   try {
     const body = await request.json();
     
-    const settings = await prisma.systemSettings.upsert({
-      where: { id: 1 },
-      update: body,
-      create: { id: 1, ...body },
+    const settings = await updateStore((store) => {
+      store.settings = {
+        ...store.settings,
+        ...body,
+        id: 1,
+        updatedAt: new Date().toISOString(),
+      };
+      return store.settings;
     });
 
     revalidatePath('/', 'layout');

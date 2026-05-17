@@ -1,6 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import prisma from "@/lib/prisma";
+import { readStore } from "@/lib/data-store";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -15,9 +15,8 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        });
+        const store = await readStore();
+        const user = store.users.find((candidate) => candidate.email.toLowerCase() === credentials.email.toLowerCase());
 
         if (!user) {
           return null;

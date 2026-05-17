@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { startOfDay, endOfDay, parseISO, addMinutes, format, isWithinInterval } from 'date-fns';
+import { readStore } from '@/lib/data-store';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -13,13 +13,9 @@ export async function GET(request: Request) {
     const dayStart = startOfDay(targetDate);
     const dayEnd = endOfDay(targetDate);
 
-    // Fetch existing appointments for the day
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        startTime: { gte: dayStart, lte: dayEnd },
-        status: { not: 'CANCELLED' }
-      },
-      select: { startTime: true, endTime: true }
+    const appointments = (await readStore()).appointments.filter((apt) => {
+      const start = new Date(apt.startTime);
+      return start >= dayStart && start <= dayEnd && apt.status !== 'CANCELLED';
     });
 
     // Generate slots every 30 minutes from 09:00 to 18:00

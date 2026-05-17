@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import "./globals.css";
 export const dynamic = 'force-dynamic';
-import prisma from "@/lib/prisma";
+import { readStore } from "@/lib/data-store";
 import { Providers } from "@/components/Providers";
 
 export async function generateMetadata(): Promise<Metadata> {
   let settings;
   try {
-    settings = await prisma.systemSettings.findFirst();
+    settings = (await readStore()).settings;
   } catch (e) {}
 
   return {
@@ -25,7 +25,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export async function generateViewport(): Promise<any> {
   let settings;
   try {
-    settings = await prisma.systemSettings.findFirst();
+    settings = (await readStore()).settings;
   } catch (e) {}
 
   return {
@@ -45,7 +45,7 @@ export default async function RootLayout({
 }) {
   let settings;
   try {
-    settings = await prisma.systemSettings.findFirst();
+    settings = (await readStore()).settings;
   } catch (e) {}
 
   const themeSettings = settings || {

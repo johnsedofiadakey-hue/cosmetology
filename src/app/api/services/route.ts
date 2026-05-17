@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { createId, readStore, updateStore } from '@/lib/data-store';
 
 export async function GET() {
-  const services = await prisma.service.findMany({
-    include: { materials: true }
-  });
+  const services = (await readStore()).services;
   return NextResponse.json(services);
 }
 
@@ -18,15 +16,19 @@ export async function POST(request: Request) {
 
   try {
     const data = await request.json();
-    const service = await prisma.service.create({
-      data: {
+    const service = await updateStore((store) => {
+      const item = {
+        id: createId("service"),
         name: data.name,
-        price: data.price,
-        duration: data.duration,
+        price: Number(data.price),
+        duration: Number(data.duration),
         category: data.category || "Hair",
         description: data.description || "",
-        image: data.imageUrl || data.image || ""
-      }
+        image: data.imageUrl || data.image || "",
+        materials: [],
+      };
+      store.services.push(item);
+      return item;
     });
     return NextResponse.json(service);
   } catch (error) {
@@ -45,7 +47,9 @@ export async function DELETE(request: Request) {
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 
-    await prisma.service.delete({ where: { id } });
+    await updateStore((store) => {
+      store.services = store.services.filter((service) => service.id !== id);
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete service" }, { status: 500 });

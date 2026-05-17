@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { createId, readStore, updateStore } from '@/lib/data-store';
 
 export async function GET() {
-  const items = await prisma.portfolioItem.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+  const items = (await readStore()).portfolio.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
   return NextResponse.json(items);
 }
 
@@ -18,13 +16,17 @@ export async function POST(request: Request) {
 
   try {
     const data = await request.json();
-    const item = await prisma.portfolioItem.create({
-      data: {
+    const item = await updateStore((store) => {
+      const item = {
+        id: createId("portfolio"),
         title: data.title,
         category: data.category,
         imageUrl: data.imageUrl,
-        description: data.description || ""
-      }
+        description: data.description || "",
+        createdAt: new Date().toISOString(),
+      };
+      store.portfolio.push(item);
+      return item;
     });
     return NextResponse.json(item);
   } catch (error) {
@@ -43,7 +45,9 @@ export async function DELETE(request: Request) {
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
 
   try {
-    await prisma.portfolioItem.delete({ where: { id } });
+    await updateStore((store) => {
+      store.portfolio = store.portfolio.filter((item) => item.id !== id);
+    });
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });

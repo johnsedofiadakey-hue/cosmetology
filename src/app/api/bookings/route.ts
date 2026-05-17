@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { addMinutes } from 'date-fns';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
+import { createId, readStore, updateStore } from '@/lib/data-store';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -12,11 +12,15 @@ export async function GET() {
   }
 
   try {
-    const appointments = await prisma.appointment.findMany({
-      include: {
-        services: true,
-        client: { include: { user: true } },
-      }
+    const store = await readStore();
+    const appointments = store.appointments.map((apt) => {
+      const client = store.clients.find((item) => item.id === apt.clientId);
+      const user = client ? store.users.find((item) => item.id === client.userId) : null;
+      return {
+        ...apt,
+        services: (apt.serviceIds as string[]).map((id: string) => store.services.find((service: any) => service.id === id)).filter(Boolean),
+        client: client ? { ...client, user } : null,
+      };
     });
     return NextResponse.json(appointments);
   } catch (error) {
@@ -27,95 +31,81 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const { name, email, phone, staffId, serviceIds, startTime } = await request.json();
-    
-    // Fetch services to get duration and price
-    const selectedServices = await prisma.service.findMany({
-      where: { id: { in: serviceIds } }
-    });
-
-    if (selectedServices.length === 0) {
-      return NextResponse.json({ error: 'No valid services found' }, { status: 404 });
+    if (!name || !email || !Array.isArray(serviceIds) || !startTime) {
+      return NextResponse.json({ error: 'Missing required booking fields' }, { status: 400 });
     }
 
-    const totalDuration = selectedServices.reduce((acc, s) => acc + s.duration, 0);
-    const totalPrice = selectedServices.reduce((acc, s) => acc + s.price, 0);
+    const result = await updateStore((store) => {
+      const selectedServices = store.services.filter((service) => serviceIds.includes(service.id));
+      if (selectedServices.length === 0) return { error: 'No valid services found', status: 404 };
 
-    // Resolve Staff ID
-    let resolvedStaffId = staffId;
-    if (staffId === "solo-staff-id" || !staffId) {
-      const firstStaff = await prisma.staff.findFirst({ where: { isActive: true } });
-      if (!firstStaff) {
-        return NextResponse.json({ error: 'No active staff members found to handle this booking.' }, { status: 500 });
+      const totalDuration = selectedServices.reduce((acc, s) => acc + s.duration, 0);
+      const totalPrice = selectedServices.reduce((acc, s) => acc + s.price, 0);
+
+      let resolvedStaffId = staffId;
+      if (staffId === "solo-staff-id" || !staffId) {
+        const firstStaff = store.staff.find((item) => item.isActive);
+        if (!firstStaff) return { error: 'No active staff members found to handle this booking.', status: 500 };
+        resolvedStaffId = firstStaff.id;
       }
-      resolvedStaffId = firstStaff.id;
-    }
 
-    const start = new Date(startTime);
-    const end = addMinutes(start, totalDuration);
-
-    // 1. Conflict Check: Check if staff is available
-    const conflict = await prisma.appointment.findFirst({
-      where: {
-        staffId: resolvedStaffId,
-        status: { in: ['PENDING', 'CONFIRMED'] },
-        OR: [
-          { startTime: { lt: end }, endTime: { gt: start } },
-        ]
-      }
-    });
-
-    if (conflict) {
-      return NextResponse.json({ error: 'This time slot is already booked. Please try another time.' }, { status: 409 });
-    }
-
-    // 2. Client Handling
-    const result = await prisma.$transaction(async (tx) => {
-      let user = await tx.user.findUnique({
-        where: { email }
+      const start = new Date(startTime);
+      const end = addMinutes(start, totalDuration);
+      const conflict = store.appointments.find((apt) => {
+        if (apt.staffId !== resolvedStaffId || !['PENDING', 'CONFIRMED'].includes(apt.status)) return false;
+        return new Date(apt.startTime) < end && new Date(apt.endTime) > start;
       });
 
+      if (conflict) return { error: 'This time slot is already booked. Please try another time.', status: 409 };
+
+      let user = store.users.find((item) => item.email.toLowerCase() === email.toLowerCase());
       if (!user) {
-        user = await tx.user.create({
-          data: {
-            email,
-            name,
-            password: 'guest-password-' + Math.random().toString(36).slice(-8),
-            role: 'CLIENT'
-          }
-        });
+        user = {
+          id: createId("user"),
+          email,
+          name,
+          password: 'guest-password-' + Math.random().toString(36).slice(-8),
+          role: 'CLIENT',
+          createdAt: new Date().toISOString(),
+        };
+        store.users.push(user);
       }
 
-      let client = await tx.client.findUnique({
-        where: { userId: user.id }
-      });
-
+      let client = store.clients.find((item) => item.userId === user.id);
       if (!client) {
-        client = await tx.client.create({
-          data: {
-            userId: user.id,
-            phone: phone
-          }
-        });
+        client = {
+          id: createId("client"),
+          userId: user.id,
+          phone,
+          notes: "",
+        };
+        store.clients.push(client);
+      } else if (phone) {
+        client.phone = phone;
       }
 
-      // 3. Create Appointment with Multiple Services
-      return await tx.appointment.create({
-        data: {
-          clientId: client.id,
-          staffId: resolvedStaffId,
-          services: {
-            connect: serviceIds.map((id: string) => ({ id }))
-          },
-          startTime: start,
-          endTime: end,
-          totalPrice: totalPrice,
-          status: 'PENDING',
-        },
-        include: {
-          services: true
-        }
-      });
+      const appointment = {
+        id: createId("apt"),
+        clientId: client.id,
+        staffId: resolvedStaffId,
+        serviceIds,
+        startTime: start.toISOString(),
+        endTime: end.toISOString(),
+        totalPrice,
+        status: 'PENDING',
+        isPaid: false,
+        paymentRef: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      store.appointments.push(appointment);
+
+      return { ...appointment, services: selectedServices, client: { ...client, user } };
     });
+
+    if ('error' in result) {
+      return NextResponse.json({ error: result.error }, { status: Number(result.status) || 500 });
+    }
 
     return NextResponse.json(result);
   } catch (error) {

@@ -1,4 +1,4 @@
-import prisma from "@/lib/prisma";
+import { readStore } from "@/lib/data-store";
 import AdminLayoutClient from "./AdminLayoutClient";
 
 export default async function AdminLayout({
@@ -6,7 +6,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const settings = await prisma.systemSettings.findFirst();
+  const settings = (await readStore()).settings;
 
   return (
     <AdminLayoutClient settings={settings}>

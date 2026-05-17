@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { startOfMonth, subMonths } from 'date-fns';
+import { startOfMonth } from 'date-fns';
+import { readStore } from '@/lib/data-store';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -12,68 +12,37 @@ export async function GET() {
   }
 
   try {
-    const now = new Date();
-    const thisMonthStart = startOfMonth(now);
-    const lastMonthStart = startOfMonth(subMonths(now, 1));
+    const store = await readStore();
+    const thisMonthStart = startOfMonth(new Date());
+    const totalRevenue = store.appointments
+      .filter((apt) => ['COMPLETED', 'CONFIRMED', 'PENDING'].includes(apt.status))
+      .reduce((sum, apt) => sum + apt.totalPrice, 0);
+    const newClientsCount = store.clients.filter((client) => {
+      const user = store.users.find((item) => item.id === client.userId);
+      return user && new Date(user.createdAt) >= thisMonthStart;
+    }).length;
 
-    // 1. Total Revenue
-    const revenueData = await prisma.appointment.aggregate({
-      where: {
-        status: { in: ['COMPLETED', 'CONFIRMED', 'PENDING'] }
-      },
-      _sum: {
-        totalPrice: true
+    const serviceCounts = new Map<string, number>();
+    for (const apt of store.appointments) {
+      for (const serviceId of apt.serviceIds) {
+        serviceCounts.set(serviceId, (serviceCounts.get(serviceId) || 0) + 1);
       }
-    });
-
-    // 2. Appointment Count
-    const appointmentCount = await prisma.appointment.count();
-
-    // 3. New Clients (this month)
-    const newClientsCount = await prisma.client.count({
-      where: {
-        user: {
-          createdAt: { gte: thisMonthStart }
-        }
-      }
-    });
-
-    // 4. Service Share (Popularity)
-    const services = await prisma.service.findMany({
-      include: {
-        _count: {
-          select: { appointments: true }
-        }
-      }
-    });
-
-    const totalBookings = services.reduce((acc, s) => acc + s._count.appointments, 0);
-    const popularServices = services.map(s => ({
-      name: s.name,
-      share: totalBookings > 0 ? Math.round((s._count.appointments / totalBookings) * 100) : 0,
-      color: "bg-brand-primary" // Default color
+    }
+    const totalBookings = Array.from(serviceCounts.values()).reduce((sum, count) => sum + count, 0);
+    const popularServices = store.services.map((service) => ({
+      name: service.name,
+      share: totalBookings > 0 ? Math.round(((serviceCounts.get(service.id) || 0) / totalBookings) * 100) : 0,
+      color: "bg-brand-primary"
     })).sort((a, b) => b.share - a.share).slice(0, 3);
 
-    // 5. Critical Alerts
-    const lowStockItems = await prisma.inventoryItem.findMany({
-      where: {
-        quantity: { lte: prisma.inventoryItem.fields.minThreshold }
-      },
-      take: 5
-    });
-
-    const pendingAppointments = await prisma.appointment.count({
-      where: { status: 'PENDING' }
-    });
-
     return NextResponse.json({
-      totalRevenue: revenueData._sum.totalPrice || 0,
-      appointmentCount,
+      totalRevenue,
+      appointmentCount: store.appointments.length,
       newClientsCount,
       popularServices,
       alerts: {
-        lowStock: lowStockItems.length,
-        pendingAppointments
+        lowStock: store.inventory.filter((item) => item.quantity <= item.minThreshold).length,
+        pendingAppointments: store.appointments.filter((apt) => apt.status === 'PENDING').length
       }
     });
   } catch (error) {
