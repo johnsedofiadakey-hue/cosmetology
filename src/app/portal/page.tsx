@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Phone, Lock, ArrowRight, ShieldCheck, ArrowLeft } from "lucide-react";
@@ -12,6 +13,8 @@ export default function ClientPortalAuth() {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"phone" | "password" | "otp">("phone");
   const [settings, setSettings] = useState<any>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -20,6 +23,7 @@ export default function ClientPortalAuth() {
 
   const handlePhoneSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
     if (settings?.enableOTP) {
       setStep("otp");
       // In a real app, this would trigger the SMS API
@@ -29,15 +33,29 @@ export default function ClientPortalAuth() {
     }
   };
 
-  const handleFinalSubmit = (e: React.FormEvent) => {
+  const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 'otp' && otp === '1234') {
-       router.push("/dashboard");
-    } else if (step === 'password') {
-       // In a real app, verify password against DB
-       router.push("/dashboard");
-    } else {
-       alert("Invalid verification. Please try again.");
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        phone,
+        password: step === "password" ? password : "",
+        otp: step === "otp" ? otp : "",
+      });
+
+      if (result?.error) {
+        setError("Invalid phone number, password, or verification code.");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,6 +74,12 @@ export default function ClientPortalAuth() {
         </div>
 
         <form onSubmit={step === 'phone' ? handlePhoneSubmit : handleFinalSubmit} className="space-y-6">
+          {error && (
+            <p className="text-rose-600 text-xs text-center font-medium bg-rose-50 border border-rose-100 py-3 px-4 rounded-2xl animate-in fade-in zoom-in-95 duration-200">
+              {error}
+            </p>
+          )}
+
           {step === "phone" && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
               <div className="space-y-2">
@@ -69,10 +93,11 @@ export default function ClientPortalAuth() {
                     className="w-full pl-12 pr-4 py-4 rounded-2xl border focus:ring-2 focus:ring-brand-primary outline-none transition-all"
                     placeholder="+233 00 000 0000"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20">
+              <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20" disabled={loading}>
                 Continue <ArrowRight className="w-5 h-5" />
               </Button>
             </div>
@@ -91,15 +116,17 @@ export default function ClientPortalAuth() {
                   className="w-full text-center text-4xl tracking-[2em] font-bold py-4 rounded-2xl border focus:ring-2 focus:ring-brand-primary outline-none"
                   placeholder="0000"
                   required
+                  disabled={loading}
                 />
               </div>
-              <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20">
-                Verify & Enter <ShieldCheck className="w-5 h-5" />
+              <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20" disabled={loading}>
+                {loading ? "Verifying..." : <>Verify & Enter <ShieldCheck className="w-5 h-5" /></>}
               </Button>
               <button 
                 type="button" 
-                onClick={() => setStep("phone")} 
+                onClick={() => { if (!loading) setStep("phone"); }} 
                 className="w-full py-4 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+                disabled={loading}
               >
                 <ArrowLeft className="w-3 h-3" /> Change Phone Number
               </button>
@@ -119,16 +146,18 @@ export default function ClientPortalAuth() {
                     className="w-full pl-12 pr-4 py-4 rounded-2xl border focus:ring-2 focus:ring-brand-primary outline-none transition-all"
                     placeholder="••••••••"
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20">
-                Secure Login <ShieldCheck className="w-5 h-5" />
+              <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20" disabled={loading}>
+                {loading ? "Securing Session..." : <>Secure Login <ShieldCheck className="w-5 h-5" /></>}
               </Button>
               <button 
                 type="button" 
-                onClick={() => setStep("phone")} 
+                onClick={() => { if (!loading) setStep("phone"); }} 
                 className="w-full py-4 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+                disabled={loading}
               >
                 <ArrowLeft className="w-3 h-3" /> Use different number
               </button>
