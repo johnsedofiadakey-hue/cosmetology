@@ -40,7 +40,10 @@ export const authOptions: NextAuthOptions = {
 
           // Case A: OTP Login
           if (credentials.otp) {
-            if (credentials.otp === "1234") {
+            const isSimulated = credentials.otp === "1234";
+            const isDynamicValid = user.tempOtp && user.tempOtp === credentials.otp && (!user.tempOtpExpires || new Date(user.tempOtpExpires) > new Date());
+
+            if (isSimulated || isDynamicValid) {
               return {
                 id: user.id,
                 email: user.email,

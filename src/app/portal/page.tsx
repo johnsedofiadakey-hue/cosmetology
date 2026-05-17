@@ -29,14 +29,35 @@ export default function ClientPortalAuth() {
     }
   }, []);
 
-  const handlePhoneSubmit = (e: React.FormEvent) => {
+  const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
     if (settings?.enableOTP) {
-      setStep("otp");
-      // In a real app, this would trigger the SMS API
-      alert("Simulator: OTP code '1234' sent to " + phone);
+      try {
+        const res = await fetch("/api/auth/otp/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          setStep("otp");
+          if (data.simulated) {
+            alert(`[SIMULATOR] Verification code sent! Use code: ${data.otpCode}`);
+          } else {
+            alert("Verification code has been sent to your phone number.");
+          }
+        } else {
+          setError(data.error || "Failed to send verification code. Please try again.");
+        }
+      } catch (err) {
+        setError("Failed to connect to the server. Please try again.");
+      } finally {
+        setLoading(false);
+      }
     } else {
+      setLoading(false);
       setStep("password");
     }
   };
@@ -179,16 +200,38 @@ export default function ClientPortalAuth() {
               <div className="flex flex-col gap-2 pt-2">
                 <button 
                   type="button" 
-                  onClick={() => {
+                  onClick={async () => {
                     if (!loading) {
-                      setStep("otp");
-                      alert("Simulator: OTP code '1234' sent to " + phone);
+                      setLoading(true);
+                      setError("");
+                      try {
+                        const res = await fetch("/api/auth/otp/send", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ phone }),
+                        });
+                        const data = await res.json();
+                        if (res.ok) {
+                          setStep("otp");
+                          if (data.simulated) {
+                            alert(`[SIMULATOR] Verification code sent! Use code: ${data.otpCode}`);
+                          } else {
+                            alert("Verification code has been sent to your phone number.");
+                          }
+                        } else {
+                          setError(data.error || "Failed to send verification code. Please try again.");
+                        }
+                      } catch (err) {
+                        setError("Failed to connect to the server. Please try again.");
+                      } finally {
+                        setLoading(false);
+                      }
                     }
                   }} 
                   className="w-full text-xs font-bold uppercase text-brand-accent hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
                   disabled={loading}
                 >
-                  Forgot password? Use OTP code '1234'
+                  Forgot password? Use OTP code
                 </button>
                 <button 
                   type="button" 
