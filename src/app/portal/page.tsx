@@ -19,6 +19,14 @@ export default function ClientPortalAuth() {
 
   useEffect(() => {
     fetch("/api/admin/settings").then(res => res.json()).then(data => setSettings(data));
+    
+    // Auto-fill phone from localStorage if present
+    if (typeof window !== "undefined") {
+      const savedPhone = localStorage.getItem("client_phone");
+      if (savedPhone) {
+        setPhone(savedPhone);
+      }
+    }
   }, []);
 
   const handlePhoneSubmit = (e: React.FormEvent) => {
@@ -83,7 +91,12 @@ export default function ClientPortalAuth() {
           {step === "phone" && (
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Phone Number</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Phone Number</label>
+                  {typeof window !== "undefined" && localStorage.getItem("client_phone") && (
+                    <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Prefilled</span>
+                  )}
+                </div>
                 <div className="relative">
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300" />
                   <input 
@@ -122,14 +135,24 @@ export default function ClientPortalAuth() {
               <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20" disabled={loading}>
                 {loading ? "Verifying..." : <>Verify & Enter <ShieldCheck className="w-5 h-5" /></>}
               </Button>
-              <button 
-                type="button" 
-                onClick={() => { if (!loading) setStep("phone"); }} 
-                className="w-full py-4 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
-                disabled={loading}
-              >
-                <ArrowLeft className="w-3 h-3" /> Change Phone Number
-              </button>
+              <div className="flex flex-col gap-2 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => { if (!loading) setStep("password"); }} 
+                  className="w-full text-xs font-bold uppercase text-brand-accent hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+                  disabled={loading}
+                >
+                  Log in with password instead
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => { if (!loading) setStep("phone"); }} 
+                  className="w-full py-2 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+                  disabled={loading}
+                >
+                  <ArrowLeft className="w-3 h-3" /> Change Phone Number
+                </button>
+              </div>
             </div>
           )}
 
@@ -153,14 +176,29 @@ export default function ClientPortalAuth() {
               <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20" disabled={loading}>
                 {loading ? "Securing Session..." : <>Secure Login <ShieldCheck className="w-5 h-5" /></>}
               </Button>
-              <button 
-                type="button" 
-                onClick={() => { if (!loading) setStep("phone"); }} 
-                className="w-full py-4 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
-                disabled={loading}
-              >
-                <ArrowLeft className="w-3 h-3" /> Use different number
-              </button>
+              <div className="flex flex-col gap-2 pt-2">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    if (!loading) {
+                      setStep("otp");
+                      alert("Simulator: OTP code '1234' sent to " + phone);
+                    }
+                  }} 
+                  className="w-full text-xs font-bold uppercase text-brand-accent hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+                  disabled={loading}
+                >
+                  Forgot password? Use OTP code '1234'
+                </button>
+                <button 
+                  type="button" 
+                  onClick={() => { if (!loading) setStep("phone"); }} 
+                  className="w-full py-2 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+                  disabled={loading}
+                >
+                  <ArrowLeft className="w-3 h-3" /> Change Phone Number
+                </button>
+              </div>
             </div>
           )}
         </form>

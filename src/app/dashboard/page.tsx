@@ -18,20 +18,27 @@ export default function ClientDashboard() {
     fetch("/api/client/dashboard")
       .then(res => res.json())
       .then(d => {
-        if (!d.error) setData(d);
+        if (!d.error) {
+          setData(d);
+        } else {
+          router.push("/portal");
+        }
         setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {
+        router.push("/portal");
+        setLoading(false);
+      });
 
     fetch("/api/settings")
       .then(res => res.json())
       .then(d => {
         if (d.currencySymbol) setCurrency(d.currencySymbol);
       });
-  }, []);
+  }, [router]);
 
   if (loading) return <div className="min-h-screen bg-zinc-50 flex items-center justify-center">Refining your profile...</div>;
-  if (!data) return <div className="min-h-screen bg-zinc-50 flex items-center justify-center">Please log in to view your portal.</div>;
+  if (!data) return <div className="min-h-screen bg-zinc-50 flex items-center justify-center">Redirecting you to the portal...</div>;
 
   const { profile, appointments, formulations } = data;
 

@@ -97,6 +97,11 @@ export default function BookingPage() {
     if (res.ok) {
       const appointment = await res.json();
       
+      // Save phone to localStorage so they can auto-fill it when logging in
+      if (typeof window !== "undefined") {
+        localStorage.setItem("client_phone", clientData.phone);
+      }
+
       // If Admin, just show success
       if (isAdmin) {
         setIsSuccess(true);
