@@ -5,6 +5,8 @@ export const defaultSettings = {
   primaryColor: "#052e16",
   secondaryColor: "#fef3c7",
   accentColor: "#10b981",
+  textPrimaryColor: "#18181b",
+  textSecondaryColor: "#71717a",
   fontFamily: "Inter",
   heroTitle: "Elevate Your Natural Beauty",
   heroSubtitle: "Professional cosmetology services tailored to you.",

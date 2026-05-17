@@ -46,11 +46,11 @@ export function Hero({
       </div>
 
       {/* Content */}
-      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center text-[#1A1A1A]">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 text-center text-brand-textPrimary">
         <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight animate-fade-in-up">
           {title}
         </h1>
-        <p className="text-xl md:text-2xl font-light mb-10 opacity-90 max-w-2xl mx-auto text-zinc-600">
+        <p className="text-xl md:text-2xl font-light mb-10 opacity-90 max-w-2xl mx-auto text-brand-textSecondary">
           {subtitle}
         </p>
         

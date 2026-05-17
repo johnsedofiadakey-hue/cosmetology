@@ -52,6 +52,8 @@ export default async function RootLayout({
     primaryColor: '#052e16',
     secondaryColor: '#fef3c7',
     accentColor: '#10b981',
+    textPrimaryColor: '#18181b',
+    textSecondaryColor: '#71717a',
     fontFamily: 'Inter'
   };
 
@@ -64,6 +66,8 @@ export default async function RootLayout({
             --color-primary: ${themeSettings.primaryColor};
             --color-secondary: ${themeSettings.secondaryColor};
             --color-accent: ${themeSettings.accentColor};
+            --color-text-primary: ${themeSettings.textPrimaryColor || '#18181b'};
+            --color-text-secondary: ${themeSettings.textSecondaryColor || '#71717a'};
             --font-brand: ${themeSettings.fontFamily === 'Playfair Display' ? '"Playfair Display", serif' : '"Outfit", sans-serif'};
             --font-body: "Outfit", sans-serif;
           }
@@ -71,7 +75,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
-      <body className="font-[family-name:var(--font-body)] bg-[var(--color-secondary)] text-zinc-900 antialiased">
+      <body className="font-[family-name:var(--font-body)] bg-[var(--color-secondary)] text-[var(--color-text-primary)] antialiased">
         <Providers>
           {children}
         </Providers>

@@ -11,6 +11,8 @@ module.exports = {
           primary: "var(--color-primary)",
           secondary: "var(--color-secondary)",
           accent: "var(--color-accent)",
+          textPrimary: "var(--color-text-primary)",
+          textSecondary: "var(--color-text-secondary)",
         },
       },
       fontFamily: {

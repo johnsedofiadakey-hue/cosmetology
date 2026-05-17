@@ -10,6 +10,8 @@ export default function SettingsPage() {
     primaryColor: "#E8B8B0",
     secondaryColor: "#FFF9F6",
     accentColor: "#D4AF37",
+    textPrimaryColor: "#18181b",
+    textSecondaryColor: "#71717a",
     heroTitle: "Elevate Your Natural Beauty",
     heroSubtitle: "Professional cosmetology services tailored to you.",
     heroImage: "/beauty_hero_bg.png",
@@ -126,6 +128,34 @@ export default function SettingsPage() {
                     className="w-10 h-10 rounded-lg border-none p-0 cursor-pointer"
                   />
                   <input type="text" value={settings.accentColor || ""} className="flex-1 text-xs border rounded-lg px-2" readOnly />
+                </div>
+              </div>
+            </div>
+
+            {/* Typography Colors */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-dashed">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-500">Primary Font Color (Titles & Headers)</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="color" 
+                    value={settings.textPrimaryColor || "#18181b"}
+                    onChange={(e) => setSettings({...settings, textPrimaryColor: e.target.value})}
+                    className="w-10 h-10 rounded-lg border-none p-0 cursor-pointer overflow-hidden"
+                  />
+                  <input type="text" value={settings.textPrimaryColor || ""} className="flex-1 text-xs border rounded-lg px-2" readOnly />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-500">Secondary Font Color (Body & Subtitles)</label>
+                <div className="flex gap-2">
+                  <input 
+                    type="color" 
+                    value={settings.textSecondaryColor || "#71717a"}
+                    onChange={(e) => setSettings({...settings, textSecondaryColor: e.target.value})}
+                    className="w-10 h-10 rounded-lg border-none p-0 cursor-pointer overflow-hidden"
+                  />
+                  <input type="text" value={settings.textSecondaryColor || ""} className="flex-1 text-xs border rounded-lg px-2" readOnly />
                 </div>
               </div>
             </div>
@@ -351,7 +381,7 @@ export default function SettingsPage() {
           <div className="rounded-2xl overflow-hidden bg-white aspect-[9/16] border-4 border-zinc-800 relative scale-100">
             {/* Header */}
             <div className="h-10 px-4 flex items-center justify-between border-b" style={{ backgroundColor: 'white' }}>
-              <span className="text-[10px] font-serif" style={{ color: settings.primaryColor }}>{settings.companyName}</span>
+              <span className="text-[10px] font-serif" style={{ color: settings.textPrimaryColor || '#18181b' }}>{settings.companyName}</span>
               <div className="w-4 h-4 rounded-full" style={{ backgroundColor: settings.primaryColor }} />
             </div>
             
@@ -368,18 +398,18 @@ export default function SettingsPage() {
             </div>
 
             {/* Services */}
-            <div className="p-4 space-y-3">
+            <div className="p-4 space-y-3" style={{ backgroundColor: settings.secondaryColor }}>
               <div className="h-1 w-8 mx-auto" style={{ backgroundColor: settings.accentColor }} />
               <div className="grid grid-cols-2 gap-2">
-                <div className="h-20 rounded-lg bg-zinc-100 p-2">
-                   <div className="h-1 w-full bg-zinc-200 rounded mb-1" />
-                   <div className="h-[2px] w-3/4 bg-zinc-200 rounded" />
-                   <div className="mt-4 text-[8px] font-bold" style={{ color: settings.primaryColor }}>{settings.currencySymbol || 'GH₵'}0.00</div>
+                <div className="h-20 rounded-lg bg-white shadow-sm border p-2">
+                   <div className="h-1 w-full rounded mb-1" style={{ backgroundColor: settings.textPrimaryColor || '#18181b' }} />
+                   <div className="h-[2px] w-3/4 rounded" style={{ backgroundColor: settings.textSecondaryColor || '#71717a' }} />
+                   <div className="mt-4 text-[8px] font-bold" style={{ color: settings.textPrimaryColor || '#18181b' }}>{settings.currencySymbol || 'GH₵'}0.00</div>
                 </div>
-                <div className="h-20 rounded-lg bg-zinc-100 p-2">
-                   <div className="h-1 w-full bg-zinc-200 rounded mb-1" />
-                   <div className="h-[2px] w-3/4 bg-zinc-200 rounded" />
-                   <div className="mt-4 text-[8px] font-bold" style={{ color: settings.primaryColor }}>{settings.currencySymbol || 'GH₵'}0.00</div>
+                <div className="h-20 rounded-lg bg-white shadow-sm border p-2">
+                   <div className="h-1 w-full rounded mb-1" style={{ backgroundColor: settings.textPrimaryColor || '#18181b' }} />
+                   <div className="h-[2px] w-3/4 rounded" style={{ backgroundColor: settings.textSecondaryColor || '#71717a' }} />
+                   <div className="mt-4 text-[8px] font-bold" style={{ color: settings.textPrimaryColor || '#18181b' }}>{settings.currencySymbol || 'GH₵'}0.00</div>
                 </div>
               </div>
             </div>
