@@ -33,7 +33,7 @@ export function Contact({ settings }: { settings?: any }) {
                 </div>
                 <div>
                   <h4 className="font-medium">Email</h4>
-                  <p className="text-white/60">{settings?.contactEmail || 'hello@beautystudio.com'}</p>
+                  <p className="text-white/60">{settings?.contactEmail || 'hello@loubeautyhub.com'}</p>
                 </div>
               </div>
               

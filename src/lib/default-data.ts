@@ -1,21 +1,28 @@
 import bcrypt from "bcryptjs";
 
+// LOÙ Beauty Hub brand palette, derived from the logo (blush rose + metallic
+// gold on warm cream, ink-black wordmark). primaryColor is a deepened rose
+// (not the pale logo pink directly) so it holds AA contrast under white
+// button text; accentColor stays a true bright gold for icons/borders/chips
+// but is intentionally NOT used for small body text (gold can't hit 4.5:1
+// against white while still reading as "gold" — see components that swap to
+// textPrimary/primary for actual copy instead).
 export const defaultSettings = {
   id: 1,
-  companyName: "LOU Beauty Hub",
+  companyName: "LOÙ Beauty Hub",
   logoUrl: "/logo.jpg",
-  primaryColor: "#052e16",
-  secondaryColor: "#fef3c7",
-  accentColor: "#10b981",
-  textPrimaryColor: "#18181b",
-  textSecondaryColor: "#71717a",
-  fontFamily: "Inter",
+  primaryColor: "#A85F54",
+  secondaryColor: "#FBF1EA",
+  accentColor: "#C9A227",
+  textPrimaryColor: "#241C1A",
+  textSecondaryColor: "#7A6A63",
+  fontFamily: "Playfair Display",
   heroTitle: "Elevate Your Natural Beauty",
-  heroSubtitle: "Professional cosmetology services tailored to you.",
-  heroImage: "/beauty_hero_bg.png",
+  heroSubtitle: "Subtle. Intentional. Beautiful — cosmetology services tailored to you.",
+  heroImage: "/lou_beauty_hero_bg.png",
   heroVideoUrl: "",
   heroMediaType: "image",
-  contactEmail: "hello@beautystudio.com",
+  contactEmail: "hello@loubeautyhub.com",
   contactPhone: "+233 00 000 0000",
   address: "Accra, Ghana",
   whatsappNumber: "233000000000",

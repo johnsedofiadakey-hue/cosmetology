@@ -62,7 +62,7 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
-              placeholder="admin@beautystudio.com"
+              placeholder="you@loubeautyhub.com"
               required
             />
           </div>

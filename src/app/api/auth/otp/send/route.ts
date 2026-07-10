@@ -50,7 +50,7 @@ export async function POST(request: Request) {
     const TWILIO_PHONE_NUMBER = process.env.TWILIO_PHONE_NUMBER;
     const TWILIO_WHATSAPP_NUMBER = process.env.TWILIO_WHATSAPP_NUMBER;
     
-    const message = `Your My Studio verification code is ${otpCode}. It expires in 10 minutes.`;
+    const message = `Your ${store.settings?.companyName || 'LOÙ Beauty Hub'} verification code is ${otpCode}. It expires in 10 minutes.`;
 
     let providerUsed = 'Simulator';
     let realMessageSent = false;

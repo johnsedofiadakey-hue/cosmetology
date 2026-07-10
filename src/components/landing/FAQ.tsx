@@ -30,7 +30,7 @@ export function FAQ() {
       <div className="max-w-3xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-serif text-brand-primary mb-4">Common Inquiries</h2>
-          <p className="text-zinc-500">Everything you need to know before your Nexus experience.</p>
+          <p className="text-zinc-500">Everything you need to know before your LOÙ experience.</p>
         </div>
 
         <div className="space-y-4">
@@ -40,7 +40,7 @@ export function FAQ() {
                 onClick={() => setOpenIndex(openIndex === i ? null : i)}
                 className="w-full flex justify-between items-center py-4 text-left group"
               >
-                <span className={`text-lg font-medium transition-colors ${openIndex === i ? 'text-brand-accent' : 'text-brand-primary group-hover:text-brand-accent'}`}>
+                <span className="text-lg font-medium text-brand-primary transition-colors">
                   {faq.question}
                 </span>
                 {openIndex === i ? <Minus className="w-5 h-5 text-brand-accent" /> : <Plus className="w-5 h-5 text-zinc-300" />}

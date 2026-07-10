@@ -11,8 +11,8 @@ export async function generateMetadata(): Promise<Metadata> {
   } catch (e) {}
 
   return {
-    title: settings?.companyName || "Beauty Studio | Professional Cosmetology",
-    description: settings?.heroSubtitle || "Elevate your natural beauty with our professional services.",
+    title: settings?.companyName || "LOÙ Beauty Hub | Professional Cosmetology",
+    description: settings?.heroSubtitle || "Subtle. Intentional. Beautiful — cosmetology services tailored to you.",
     manifest: "/manifest.json",
     icons: {
       icon: settings?.logoUrl || "/logo.jpg",
@@ -21,7 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     appleWebApp: {
       capable: true,
-      title: settings?.companyName || "Nexus Beauty",
+      title: settings?.companyName || "LOÙ Beauty Hub",
       statusBarStyle: "black-translucent",
     },
   };
@@ -34,7 +34,7 @@ export async function generateViewport(): Promise<any> {
   } catch (e) {}
 
   return {
-    themeColor: settings?.primaryColor || "#052e16",
+    themeColor: settings?.primaryColor || "#A85F54",
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
@@ -54,12 +54,12 @@ export default async function RootLayout({
   } catch (e) {}
 
   const themeSettings = settings || {
-    primaryColor: '#052e16',
-    secondaryColor: '#fef3c7',
-    accentColor: '#10b981',
-    textPrimaryColor: '#18181b',
-    textSecondaryColor: '#71717a',
-    fontFamily: 'Inter'
+    primaryColor: '#A85F54',
+    secondaryColor: '#FBF1EA',
+    accentColor: '#C9A227',
+    textPrimaryColor: '#241C1A',
+    textSecondaryColor: '#7A6A63',
+    fontFamily: 'Playfair Display'
   };
 
   return (

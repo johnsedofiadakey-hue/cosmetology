@@ -381,7 +381,7 @@ export default function BookingPage() {
                     <span className="font-bold">Total Amount</span>
                     <span className="font-bold">{currency}{totalPrice}</span>
                   </div>
-                  <div className="flex justify-between text-brand-accent">
+                  <div className="flex justify-between text-brand-primary">
                     <span className="font-bold">Deposit Due Now (20%)</span>
                     <span className="font-bold">{currency}{(totalPrice * 0.2).toFixed(2)}</span>
                   </div>

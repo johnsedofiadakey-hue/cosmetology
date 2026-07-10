@@ -42,15 +42,16 @@ export function Hero({
             style={{ backgroundImage: `url(${backgroundImage || '/beauty_hero_bg.png'})` }}
           />
         )}
-        <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-brand-secondary/40 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-gradient-to-t from-brand-secondary/70 via-transparent to-brand-secondary/20" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center text-brand-textPrimary">
-        <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight animate-fade-in-up">
+        <h1 className="text-5xl md:text-7xl font-serif mb-6 leading-tight animate-fade-in-up [text-shadow:0_4px_30px_var(--color-secondary)]">
           {title}
         </h1>
-        <p className="text-xl md:text-2xl font-light mb-10 opacity-90 max-w-2xl mx-auto text-brand-textSecondary">
+        <p className="text-xl md:text-2xl font-normal mb-10 max-w-2xl mx-auto text-brand-textSecondary [text-shadow:0_2px_20px_var(--color-secondary)]">
           {subtitle}
         </p>
         

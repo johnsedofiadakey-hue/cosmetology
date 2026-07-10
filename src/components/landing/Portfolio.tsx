@@ -23,7 +23,7 @@ export function Portfolio() {
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-accent mb-2 block tracking-widest">Our Artistry</span>
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-brand-primary mb-2 block tracking-widest">Our Artistry</span>
             <h2 className="text-5xl md:text-6xl font-serif text-brand-primary mb-4 leading-tight">The Showcase</h2>
             <p className="text-zinc-500 max-w-sm">A curated collection of professional transformations and technical excellence.</p>
           </div>

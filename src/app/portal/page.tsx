@@ -98,7 +98,7 @@ export default function ClientPortalAuth() {
         </Link>
         
         <div className="text-center mb-10">
-          <h2 className="text-4xl font-serif text-brand-primary mb-2">My Studio Portal</h2>
+          <h2 className="text-4xl font-serif text-brand-primary mb-2">{settings?.companyName || "LOÙ Beauty Hub"} Portal</h2>
           <p className="text-zinc-400 text-sm">Access your treatment history and book new sessions.</p>
         </div>
 
@@ -160,7 +160,7 @@ export default function ClientPortalAuth() {
                 <button 
                   type="button" 
                   onClick={() => { if (!loading) setStep("password"); }} 
-                  className="w-full text-xs font-bold uppercase text-brand-accent hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+                  className="w-full text-xs font-bold uppercase text-brand-primary hover:text-brand-accent transition-colors flex items-center justify-center gap-2"
                   disabled={loading}
                 >
                   Log in with password instead
@@ -228,7 +228,7 @@ export default function ClientPortalAuth() {
                       }
                     }
                   }} 
-                  className="w-full text-xs font-bold uppercase text-brand-accent hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
+                  className="w-full text-xs font-bold uppercase text-brand-primary hover:text-brand-accent transition-colors flex items-center justify-center gap-2"
                   disabled={loading}
                 >
                   Forgot password? Use OTP code
@@ -247,7 +247,7 @@ export default function ClientPortalAuth() {
         </form>
 
         <div className="mt-12 text-center border-t pt-8">
-           <p className="text-[10px] text-zinc-400 uppercase tracking-widest">Powered by LOU Beauty Hub Infrastructure</p>
+           <p className="text-[10px] text-zinc-400 uppercase tracking-widest">Powered by LOÙ Beauty Hub</p>
         </div>
       </div>
     </div>

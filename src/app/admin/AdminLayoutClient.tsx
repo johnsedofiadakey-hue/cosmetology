@@ -31,13 +31,13 @@ export default function AdminLayoutClient({
     { name: "Settings", href: "/admin/settings", icon: Settings },
   ];
 
-  const studioName = settings?.companyName || "LOU Beauty Hub";
+  const studioName = settings?.companyName || "LOÙ Beauty Hub";
 
   return (
     <div className="flex min-h-screen bg-zinc-100">
       <AdminCommandPalette />
       {/* Sidebar */}
-      <aside className="w-64 bg-zinc-900 text-white flex flex-col">
+      <aside className="w-64 bg-[#241C1A] text-white flex flex-col">
         <div className="p-8 text-2xl font-serif text-brand-secondary border-b border-white/10 flex flex-col gap-2">
           {settings?.logoUrl && (
             <img src={settings.logoUrl} alt={studioName} className="w-10 h-10 object-cover rounded-full border border-white/20" />

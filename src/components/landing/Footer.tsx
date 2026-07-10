@@ -6,13 +6,13 @@ import { Instagram, Facebook, Twitter, Mail, Phone, MapPin, Youtube, Type as Tik
 export function Footer({ settings }: { settings?: any }) {
   const currentYear = new Date().getFullYear();
   
-  const studioName = settings?.companyName || "Nexus";
-  const contactEmail = settings?.contactEmail || "studio@nexus.com";
+  const studioName = settings?.companyName || "LOÙ Beauty Hub";
+  const contactEmail = settings?.contactEmail || "hello@loubeautyhub.com";
   const contactPhone = settings?.contactPhone || "+233 00 000 0000";
   const contactAddress = settings?.address || "Accra, Ghana • East Legon";
 
   return (
-    <footer className="bg-[#1A1A1A] text-white pt-24 pb-12 border-t border-brand-accent/20">
+    <footer className="bg-[#241C1A] text-white pt-24 pb-12 border-t border-brand-accent/20">
       <div className="max-w-7xl mx-auto px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           {/* Brand Column */}

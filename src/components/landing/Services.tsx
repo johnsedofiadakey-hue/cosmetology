@@ -88,7 +88,7 @@ export function Services({ settings }: { settings?: any }) {
                   {service.description}
                 </p>
                 <div className="flex items-center justify-between">
-                   <span className="text-xs font-bold uppercase tracking-widest text-brand-accent">{service.duration || '60'} MINS</span>
+                   <span className="text-xs font-bold uppercase tracking-widest text-brand-primary">{service.duration || '60'} MINS</span>
                    <Button variant="ghost" size="lg" className="text-brand-primary font-bold h-12">Details</Button>
                 </div>
               </div>
@@ -124,7 +124,7 @@ export function Services({ settings }: { settings?: any }) {
 
             {/* Modal Content */}
             <div className="w-full md:w-1/2 p-10 md:p-14 overflow-y-auto">
-              <span className="text-xs font-bold uppercase tracking-[0.2em] text-brand-accent mb-4 block">Treatment Details</span>
+              <span className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary mb-4 block">Treatment Details</span>
               <h2 className="text-4xl font-serif text-brand-primary mb-6">{activeService.name}</h2>
               
               <div className="flex gap-6 mb-8">
@@ -134,7 +134,7 @@ export function Services({ settings }: { settings?: any }) {
                 </div>
                 <div className="flex items-center gap-2 text-brand-primary font-bold text-sm">
                   <span className="text-zinc-400 font-normal">Starting at</span>
-                  <span className="text-brand-accent">{currency}{activeService.price || '85'}</span>
+                  <span className="text-brand-primary">{currency}{activeService.price || '85'}</span>
                 </div>
               </div>
 

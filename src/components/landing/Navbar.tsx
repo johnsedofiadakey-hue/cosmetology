@@ -7,7 +7,7 @@ import { Menu, X, User, ShoppingBag, Calendar, Scissors } from "lucide-react";
 
 export function Navbar({ settings }: { settings?: any }) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const studioName = settings?.companyName || "LOU Beauty Hub";
+  const studioName = settings?.companyName || "LOÙ Beauty Hub";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -21,7 +21,7 @@ export function Navbar({ settings }: { settings?: any }) {
     <nav 
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         isScrolled 
-          ? "bg-[#FFF9F6]/80 backdrop-blur-xl py-3 shadow-lg border-b border-brand-accent/20" 
+          ? "bg-brand-secondary/80 backdrop-blur-xl py-3 shadow-lg border-b border-brand-accent/20" 
           : "bg-transparent py-5"
       }`}
     >

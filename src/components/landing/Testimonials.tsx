@@ -34,7 +34,7 @@ export function Testimonials() {
              {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-brand-accent text-brand-accent" />)}
           </div>
           <h2 className="text-4xl md:text-5xl font-serif text-brand-primary mb-4">Client Love</h2>
-          <p className="text-zinc-500 max-w-xl mx-auto">Hear from those who have experienced the Nexus transformation.</p>
+          <p className="text-zinc-500 max-w-xl mx-auto">Hear from those who have experienced the LOÙ transformation.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

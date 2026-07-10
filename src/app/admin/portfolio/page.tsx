@@ -177,7 +177,7 @@ export default function AdminPortfolio() {
             <div className="p-6">
               <div className="flex items-center gap-2 mb-2">
                 <Tag className="w-3 h-3 text-brand-accent" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-accent">{item.category}</span>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-primary">{item.category}</span>
               </div>
               <h4 className="text-lg font-bold">{item.title}</h4>
             </div>

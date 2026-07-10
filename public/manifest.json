@@ -1,11 +1,11 @@
 {
-  "name": "Nexus Beauty Studio",
-  "short_name": "Nexus",
-  "description": "Premium Cosmetology Management Platform",
+  "name": "LOÙ Beauty Hub",
+  "short_name": "LOÙ",
+  "description": "Subtle. Intentional. Beautiful — professional cosmetology services.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#052e16",
+  "background_color": "#FBF1EA",
+  "theme_color": "#A85F54",
   "icons": [
     {
       "src": "/icon-192x192.png",

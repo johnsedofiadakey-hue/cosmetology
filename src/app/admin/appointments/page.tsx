@@ -13,7 +13,7 @@ export default function AdminAppointments() {
   const [view, setView] = useState<"list" | "calendar">("list");
   const [activeInvoice, setActiveInvoice] = useState<any>(null);
   const [currency, setCurrency] = useState("GH₵");
-  const [companyName, setCompanyName] = useState("LOU Beauty Hub");
+  const [companyName, setCompanyName] = useState("LOÙ Beauty Hub");
   const searchParams = useSearchParams();
   const isNew = searchParams.get("new") === "true";
 
@@ -106,7 +106,7 @@ export default function AdminAppointments() {
                     </div>
                     <div>
                       <p className="font-bold">{apt.client?.user?.name || 'Walk-in Client'}</p>
-                      <p className="text-xs text-brand-accent">{apt.services?.map((s: any) => s.name).join(', ') || 'No services'}</p>
+                      <p className="text-xs text-brand-primary">{apt.services?.map((s: any) => s.name).join(', ') || 'No services'}</p>
                     </div>
                   </div>
                 </td>
