@@ -33,7 +33,7 @@ export const defaultSettings = {
   twitterUrl: "",
   currencySymbol: "GH₵",
   paystackPublicKey: "",
-  enableOTP: false,
+  enableOTP: true,
   updatedAt: new Date(0).toISOString(),
 };
 
@@ -90,7 +90,7 @@ export const defaultInventory = [
 export const defaultUsers = [
   {
     id: "solo-owner-id",
-    email: "admin@beautystudio.com",
+    email: "admin@loubeautyhub.com",
     password: bcrypt.hashSync("admin123", 10),
     name: "Studio Owner",
     role: "STAFF",

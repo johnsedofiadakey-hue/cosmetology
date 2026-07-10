@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Palette, Layout, Type, Image as ImageIcon, CheckCircle, Package } from "lucide-react";
+import { Palette, Layout, Type, Image as ImageIcon, CheckCircle, Package, Lock } from "lucide-react";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -55,6 +56,44 @@ export default function SettingsPage() {
     });
     setSaveStatus("saved");
     setTimeout(() => setSaveStatus("idle"), 2000);
+  };
+
+  const [accountForm, setAccountForm] = useState({ currentPassword: "", newEmail: "", newPassword: "", confirmPassword: "" });
+  const [accountStatus, setAccountStatus] = useState<"idle" | "saving" | "saved">("idle");
+  const [accountError, setAccountError] = useState("");
+
+  const handleAccountSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAccountError("");
+
+    if (accountForm.newPassword && accountForm.newPassword !== accountForm.confirmPassword) {
+      setAccountError("New password and confirmation don't match.");
+      return;
+    }
+
+    setAccountStatus("saving");
+    const res = await fetch("/api/admin/account", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        currentPassword: accountForm.currentPassword,
+        newEmail: accountForm.newEmail || undefined,
+        newPassword: accountForm.newPassword || undefined,
+      }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setAccountError(data.error || "Failed to update account.");
+      setAccountStatus("idle");
+      return;
+    }
+
+    setAccountStatus("saved");
+    setAccountForm({ currentPassword: "", newEmail: "", newPassword: "", confirmPassword: "" });
+    // The session's email/password are cached in the JWT at sign-in, so a
+    // changed credential won't reflect until the next login.
+    setTimeout(() => signOut({ callbackUrl: "/login" }), 1500);
   };
 
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
@@ -379,6 +418,76 @@ export default function SettingsPage() {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Account Security */}
+        <div className="bg-white rounded-3xl p-8 shadow-sm border">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+              <Lock className="w-5 h-5" />
+            </div>
+            <h3 className="text-2xl font-serif">Account Security</h3>
+          </div>
+
+          <form onSubmit={handleAccountSave} className="space-y-4 max-w-md">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-700">Current Password</label>
+              <input
+                type="password"
+                value={accountForm.currentPassword}
+                onChange={(e) => setAccountForm({ ...accountForm, currentPassword: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                placeholder="Required to make any change below"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-zinc-700">New Login Email</label>
+              <input
+                type="email"
+                value={accountForm.newEmail}
+                onChange={(e) => setAccountForm({ ...accountForm, newEmail: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                placeholder="Leave blank to keep current email"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">New Password</label>
+                <input
+                  type="password"
+                  value={accountForm.newPassword}
+                  onChange={(e) => setAccountForm({ ...accountForm, newPassword: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                  placeholder="Leave blank to keep current"
+                  minLength={8}
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-zinc-700">Confirm New Password</label>
+                <input
+                  type="password"
+                  value={accountForm.confirmPassword}
+                  onChange={(e) => setAccountForm({ ...accountForm, confirmPassword: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                  minLength={8}
+                />
+              </div>
+            </div>
+
+            {accountError && <p className="text-red-500 text-sm">{accountError}</p>}
+            {accountStatus === "saved" && (
+              <p className="text-emerald-600 text-sm flex items-center gap-2">
+                <CheckCircle className="w-4 h-4" /> Saved — signing you out to log in with your new credentials...
+              </p>
+            )}
+
+            <div className="pt-2">
+              <Button type="submit" disabled={accountStatus === "saving"}>
+                {accountStatus === "saving" ? "Saving..." : "Update Credentials"}
+              </Button>
+            </div>
+          </form>
         </div>
       </div>
 
