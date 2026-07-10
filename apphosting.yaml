@@ -18,7 +18,7 @@ env:
   - variable: NEXTAUTH_URL
     value: "https://cosmetology--cosmetologysystem.us-east4.hosted.app"
   - variable: FIREBASE_STORAGE_BUCKET
-    value: "152762339392-asia-east1-blueprint-config"
+    value: "cosmetologysystem.firebasestorage.app"
   - variable: NEXT_PUBLIC_FIREBASE_API_KEY
     value: "AIzaSyDOL5gMZBblFTAR3td2Oy5xVWy5pCqFNBI"
   - variable: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
