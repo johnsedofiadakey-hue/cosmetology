@@ -2,29 +2,72 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Package, Plus, AlertCircle, RefreshCw, BarChart3, Clock } from "lucide-react";
+import { Package, Plus, Pencil, Trash2, AlertCircle, BarChart3, Clock } from "lucide-react";
+
+const EMPTY_ITEM = { name: "", sku: "", quantity: "", unit: "ml", minThreshold: "50" };
 
 export default function AdminInventory() {
   const [items, setItems] = useState<any[]>([]);
-  const [isAdding, setIsAdding] = useState(false);
-  const [newItem, setNewItem] = useState({ name: "", quantity: "", unit: "ml", minThreshold: "50" });
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [formState, setFormState] = useState(EMPTY_ITEM);
 
   useEffect(() => {
     fetch("/api/inventory").then(res => res.json()).then(data => setItems(data));
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("/api/inventory", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...newItem, quantity: parseFloat(newItem.quantity), minThreshold: parseFloat(newItem.minThreshold) })
+  const openAdd = () => {
+    setEditingId(null);
+    setFormState(EMPTY_ITEM);
+    setIsOpen(true);
+  };
+
+  const openEdit = (item: any) => {
+    setEditingId(item.id);
+    setFormState({
+      name: item.name || "",
+      sku: item.sku || "",
+      quantity: String(item.quantity ?? ""),
+      unit: item.unit || "ml",
+      minThreshold: String(item.minThreshold ?? ""),
     });
+    setIsOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = { ...formState, quantity: parseFloat(formState.quantity), minThreshold: parseFloat(formState.minThreshold) };
+
+    if (editingId) {
+      const res = await fetch("/api/inventory", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingId, ...payload })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setItems(items.map(i => i.id === editingId ? { ...i, ...updated } : i));
+        setIsOpen(false);
+      }
+    } else {
+      const res = await fetch("/api/inventory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const added = await res.json();
+        setItems([...items, added]);
+        setIsOpen(false);
+      }
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this material?")) return;
+    const res = await fetch(`/api/inventory?id=${id}`, { method: "DELETE" });
     if (res.ok) {
-      const added = await res.json();
-      setItems([...items, added]);
-      setIsAdding(false);
-      setNewItem({ name: "", quantity: "", unit: "ml", minThreshold: "50" });
+      setItems(items.filter(i => i.id !== id));
     }
   };
 
@@ -35,54 +78,60 @@ export default function AdminInventory() {
           <h3 className="text-3xl font-serif text-brand-primary">Inventory Vault</h3>
           <p className="text-zinc-500">Track your raw materials and receive stock alerts.</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" className="gap-2">
-            <RefreshCw className="w-4 h-4" /> Sync Stock
-          </Button>
-          <Button onClick={() => setIsAdding(true)} className="gap-2">
-            <Plus className="w-4 h-4" /> Add Item
-          </Button>
-        </div>
+        <Button onClick={openAdd} className="gap-2">
+          <Plus className="w-4 h-4" /> Add Item
+        </Button>
       </div>
 
-      {isAdding && (
+      {isOpen && (
         <div className="bg-white p-8 rounded-3xl border shadow-lg animate-in fade-in slide-in-from-top-4">
-          <h4 className="text-xl font-bold mb-6">New Raw Material</h4>
-          <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <h4 className="text-xl font-bold mb-6">{editingId ? "Edit Material" : "New Raw Material"}</h4>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Material Name</label>
-              <input 
-                value={newItem.name} 
-                onChange={e => setNewItem({...newItem, name: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none" 
+              <input
+                value={formState.name}
+                onChange={e => setFormState({...formState, name: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
                 placeholder="e.g. Organic Serum"
                 required
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-bold uppercase text-zinc-400">Initial Quantity</label>
-              <input 
-                type="number" 
-                value={newItem.quantity} 
-                onChange={e => setNewItem({...newItem, quantity: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none" 
+              <label className="text-xs font-bold uppercase text-zinc-400">{editingId ? "Quantity in Stock" : "Initial Quantity"}</label>
+              <input
+                type="number"
+                value={formState.quantity}
+                onChange={e => setFormState({...formState, quantity: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
                 placeholder="1000"
                 required
               />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Unit (ml, g, etc)</label>
-              <input 
-                value={newItem.unit} 
-                onChange={e => setNewItem({...newItem, unit: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none" 
+              <input
+                value={formState.unit}
+                onChange={e => setFormState({...formState, unit: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
                 placeholder="ml"
                 required
               />
             </div>
-            <div className="flex items-end gap-2">
-              <Button type="submit" className="flex-1 h-[50px]">Save Material</Button>
-              <Button type="button" variant="outline" onClick={() => setIsAdding(false)} className="h-[50px]">Cancel</Button>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-zinc-400">Low Stock Threshold</label>
+              <input
+                type="number"
+                value={formState.minThreshold}
+                onChange={e => setFormState({...formState, minThreshold: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                placeholder="50"
+                required
+              />
+            </div>
+            <div className="flex items-end gap-2 md:col-span-4">
+              <Button type="submit" className="flex-1 h-[50px]">{editingId ? "Save Changes" : "Save Material"}</Button>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="h-[50px]">Cancel</Button>
             </div>
           </form>
         </div>
@@ -93,17 +142,23 @@ export default function AdminInventory() {
           const isLow = item.quantity <= item.minThreshold;
           const willBeLow = item.isForecastingLow && !isLow;
           return (
-            <div key={item.id} className={`bg-white p-6 rounded-3xl border transition-all ${isLow ? 'border-red-200 ring-2 ring-red-50' : willBeLow ? 'border-amber-200 ring-2 ring-amber-50' : 'hover:shadow-md'}`}>
+            <div key={item.id} className={`bg-white p-6 rounded-3xl border transition-all group relative ${isLow ? 'border-red-200 ring-2 ring-red-50' : willBeLow ? 'border-amber-200 ring-2 ring-amber-50' : 'hover:shadow-md'}`}>
               <div className="flex justify-between items-start mb-6">
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isLow ? 'bg-red-100 text-red-600' : willBeLow ? 'bg-amber-100 text-amber-600' : 'bg-brand-secondary/50 text-brand-primary'}`}>
                   {isLow ? <AlertCircle className="w-6 h-6" /> : willBeLow ? <Clock className="w-6 h-6" /> : <Package className="w-6 h-6" />}
                 </div>
-                <div className="text-right">
+                <div className="flex items-center gap-3">
                   {isLow ? (
                     <span className="text-[10px] font-bold text-red-600 uppercase tracking-tighter">Low Stock</span>
                   ) : willBeLow ? (
                     <span className="text-[10px] font-bold text-amber-600 uppercase tracking-tighter">Shortage Predicted</span>
                   ) : null}
+                  <button onClick={() => openEdit(item)} className="text-zinc-300 hover:text-brand-primary transition-colors">
+                    <Pencil className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(item.id)} className="text-zinc-300 hover:text-red-500 transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
               <h4 className="text-lg font-bold truncate">{item.name}</h4>
@@ -111,8 +166,8 @@ export default function AdminInventory() {
                 <div>
                   <p className="text-2xl font-bold">{item.quantity} <span className="text-sm font-medium text-zinc-400">{item.unit}</span></p>
                   <div className="w-full bg-zinc-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full ${isLow ? 'bg-red-500' : willBeLow ? 'bg-amber-500' : 'bg-brand-accent'}`} 
+                    <div
+                      className={`h-full rounded-full ${isLow ? 'bg-red-500' : willBeLow ? 'bg-amber-500' : 'bg-brand-accent'}`}
                       style={{ width: `${Math.min((item.quantity / (item.minThreshold * 5)) * 100, 100)}%` }}
                     />
                   </div>

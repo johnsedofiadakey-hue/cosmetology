@@ -64,3 +64,56 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Failed to create inventory item" }, { status: 500 });
   }
 }
+
+export async function PATCH(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || ((session.user as any).role !== "ADMIN" && (session.user as any).role !== "STAFF")) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const data = await request.json();
+    if (!data.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    const item = await updateStore((store) => {
+      const item = store.inventory.find((entry) => entry.id === data.id);
+      if (!item) return null;
+
+      if (data.name !== undefined) item.name = data.name;
+      if (data.sku !== undefined) item.sku = data.sku;
+      if (data.unit !== undefined) item.unit = data.unit;
+      if (data.minThreshold !== undefined) item.minThreshold = Number(data.minThreshold);
+      if (data.quantity !== undefined) {
+        item.quantity = Number(data.quantity);
+        item.lastRestocked = new Date().toISOString();
+      }
+
+      return item;
+    });
+
+    if (!item) return NextResponse.json({ error: "Item not found" }, { status: 404 });
+    return NextResponse.json(item);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to update inventory item" }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || ((session.user as any).role !== "ADMIN" && (session.user as any).role !== "STAFF")) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+    if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    await updateStore((store) => {
+      store.inventory = store.inventory.filter((item) => item.id !== id);
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to delete inventory item" }, { status: 500 });
+  }
+}

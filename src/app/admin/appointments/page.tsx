@@ -39,8 +39,7 @@ export default function AdminAppointments() {
       });
   }, []);
 
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const hours = ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"];
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
 
   const updateStatus = async (id: string, status: string) => {
     const res = await fetch(`/api/bookings/${id}/status`, {
@@ -48,10 +47,19 @@ export default function AdminAppointments() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status })
     });
-    
+
     if (res.ok) {
       setAppointments(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     }
+  };
+
+  const deleteAppointment = async (id: string) => {
+    if (!confirm("Permanently delete this appointment? This cannot be undone.")) return;
+    const res = await fetch(`/api/bookings/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      setAppointments(prev => prev.filter(a => a.id !== id));
+    }
+    setOpenMenuId(null);
   };
 
   return (
@@ -143,9 +151,35 @@ export default function AdminAppointments() {
                     >
                       Invoice
                     </button>
-                    <button className="p-2 hover:bg-zinc-100 rounded-lg text-zinc-400">
-                      <MoreVertical className="w-5 h-5" />
-                    </button>
+                    <div className="relative">
+                      <button
+                        onClick={() => setOpenMenuId(openMenuId === apt.id ? null : apt.id)}
+                        className="p-2 hover:bg-zinc-100 rounded-lg text-zinc-400"
+                      >
+                        <MoreVertical className="w-5 h-5" />
+                      </button>
+                      {openMenuId === apt.id && (
+                        <>
+                          <div className="fixed inset-0 z-10" onClick={() => setOpenMenuId(null)} />
+                          <div className="absolute right-0 top-full mt-1 bg-white border rounded-xl shadow-lg z-20 overflow-hidden min-w-[160px]">
+                            {apt.status !== 'CANCELLED' && (
+                              <button
+                                onClick={() => { updateStatus(apt.id, 'CANCELLED'); setOpenMenuId(null); }}
+                                className="w-full text-left px-4 py-3 text-xs font-medium hover:bg-zinc-50 text-zinc-700"
+                              >
+                                Cancel Appointment
+                              </button>
+                            )}
+                            <button
+                              onClick={() => deleteAppointment(apt.id)}
+                              className="w-full text-left px-4 py-3 text-xs font-medium hover:bg-red-50 text-red-600"
+                            >
+                              Delete Permanently
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </td>
               </tr>

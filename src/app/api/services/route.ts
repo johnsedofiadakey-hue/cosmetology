@@ -36,6 +36,37 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PATCH(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || ((session.user as any).role !== "ADMIN" && (session.user as any).role !== "STAFF")) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const data = await request.json();
+    if (!data.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    const service = await updateStore((store) => {
+      const item = store.services.find((service) => service.id === data.id);
+      if (!item) return null;
+
+      if (data.name !== undefined) item.name = data.name;
+      if (data.price !== undefined) item.price = Number(data.price);
+      if (data.duration !== undefined) item.duration = Number(data.duration);
+      if (data.category !== undefined) item.category = data.category;
+      if (data.description !== undefined) item.description = data.description;
+      if (data.imageUrl !== undefined || data.image !== undefined) item.image = data.imageUrl ?? data.image;
+
+      return item;
+    });
+
+    if (!service) return NextResponse.json({ error: "Service not found" }, { status: 404 });
+    return NextResponse.json(service);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to update service" }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session || ((session.user as any).role !== "ADMIN" && (session.user as any).role !== "STAFF")) {

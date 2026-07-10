@@ -34,6 +34,35 @@ export async function POST(request: Request) {
   }
 }
 
+export async function PATCH(request: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session || ((session.user as any).role !== "ADMIN" && (session.user as any).role !== "STAFF")) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const data = await request.json();
+    if (!data.id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    const item = await updateStore((store) => {
+      const item = store.portfolio.find((entry) => entry.id === data.id);
+      if (!item) return null;
+
+      if (data.title !== undefined) item.title = data.title;
+      if (data.category !== undefined) item.category = data.category;
+      if (data.imageUrl !== undefined) item.imageUrl = data.imageUrl;
+      if (data.description !== undefined) item.description = data.description;
+
+      return item;
+    });
+
+    if (!item) return NextResponse.json({ error: "Portfolio item not found" }, { status: 404 });
+    return NextResponse.json(item);
+  } catch (error) {
+    return NextResponse.json({ error: "Failed to update portfolio item" }, { status: 500 });
+  }
+}
+
 export async function DELETE(request: Request) {
   const session = await getServerSession(authOptions);
   if (!session || ((session.user as any).role !== "ADMIN" && (session.user as any).role !== "STAFF")) {

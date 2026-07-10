@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, User as UserIcon, History, FlaskConical, MoreVertical, MessageSquare, Loader2 } from "lucide-react";
+import { Search, User as UserIcon, History, FlaskConical, MessageSquare, Pencil, Loader2, X } from "lucide-react";
 
 export default function ClientVault() {
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currency, setCurrency] = useState("GH₵");
+  const [search, setSearch] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", phone: "", notes: "" });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/clients")
@@ -22,6 +26,46 @@ export default function ClientVault() {
         if (data.currencySymbol) setCurrency(data.currencySymbol);
       });
   }, []);
+
+  const filteredClients = clients.filter((client) => {
+    const query = search.toLowerCase();
+    return (
+      client.name?.toLowerCase().includes(query) ||
+      client.email?.toLowerCase().includes(query) ||
+      client.phone?.toLowerCase().includes(query)
+    );
+  });
+
+  const openEdit = () => {
+    if (!selectedClient) return;
+    setEditForm({ name: selectedClient.name || "", phone: selectedClient.phone || "", notes: selectedClient.notes || "" });
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/clients", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: selectedClient.id, ...editForm })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        const merged = { ...selectedClient, ...updated };
+        setSelectedClient(merged);
+        setClients(clients.map(c => c.id === merged.id ? { ...c, ...merged } : c));
+        setIsEditing(false);
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const whatsappHref = selectedClient?.phone
+    ? `https://wa.me/${selectedClient.phone.replace(/[^\d]/g, "")}`
+    : undefined;
 
   if (loading) {
     return (
@@ -38,14 +82,16 @@ export default function ClientVault() {
         <div className="p-6 border-b bg-zinc-50/50">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-5 h-5" />
-            <input 
-              type="text" 
+            <input
+              type="text"
               placeholder="Search clients by name, email, or phone..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-12 pr-4 py-3 rounded-xl border bg-white focus:ring-2 focus:ring-brand-primary outline-none"
             />
           </div>
         </div>
-        
+
         <div className="flex-1 overflow-y-auto">
           <table className="w-full text-left">
             <thead className="bg-zinc-50 border-b sticky top-0">
@@ -53,13 +99,12 @@ export default function ClientVault() {
                 <th className="px-8 py-4 font-bold">Client Name</th>
                 <th className="px-8 py-4 font-bold">Last Visit</th>
                 <th className="px-8 py-4 font-bold">Total Spent</th>
-                <th className="px-8 py-4 font-bold"></th>
               </tr>
             </thead>
             <tbody className="divide-y">
-              {clients.map((client) => (
-                <tr 
-                  key={client.id} 
+              {filteredClients.map((client) => (
+                <tr
+                  key={client.id}
                   onClick={() => setSelectedClient(client)}
                   className={`cursor-pointer transition-colors ${selectedClient?.id === client.id ? 'bg-brand-primary/5' : 'hover:bg-zinc-50'}`}
                 >
@@ -76,11 +121,13 @@ export default function ClientVault() {
                   </td>
                   <td className="px-8 py-6 text-sm">{client.lastVisit}</td>
                   <td className="px-8 py-6 text-sm font-medium">{currency}{client.totalSpent.toFixed(2)}</td>
-                  <td className="px-8 py-6 text-right">
-                    <button className="p-2 hover:bg-zinc-100 rounded-lg"><MoreVertical className="w-4 h-4 text-zinc-400" /></button>
-                  </td>
                 </tr>
               ))}
+              {filteredClients.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="px-8 py-12 text-center text-zinc-400 italic">No clients match your search.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -99,11 +146,17 @@ export default function ClientVault() {
                 <h3 className="text-2xl font-serif">{selectedClient.name}</h3>
                 <p className="text-zinc-500 mb-6">{selectedClient.phone}</p>
                 <div className="flex gap-2 justify-center">
-                   <button className="p-3 bg-brand-primary text-white rounded-xl shadow-lg hover:scale-105 transition-transform">
+                   <a
+                      href={whatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-disabled={!whatsappHref}
+                      className={`p-3 rounded-xl shadow-lg transition-transform ${whatsappHref ? 'bg-brand-primary text-white hover:scale-105' : 'bg-zinc-200 text-zinc-400 pointer-events-none'}`}
+                   >
                       <MessageSquare className="w-5 h-5" />
-                   </button>
-                   <button className="p-3 bg-zinc-100 text-zinc-600 rounded-xl hover:bg-zinc-200 transition-colors">
-                      Edit Profile
+                   </a>
+                   <button onClick={openEdit} className="px-4 p-3 bg-zinc-100 text-zinc-600 rounded-xl hover:bg-zinc-200 transition-colors flex items-center gap-2 text-sm font-medium">
+                      <Pencil className="w-4 h-4" /> Edit Profile
                    </button>
                 </div>
               </div>
@@ -159,6 +212,53 @@ export default function ClientVault() {
           )}
         </div>
       </div>
+
+      {isEditing && selectedClient && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6" onClick={() => setIsEditing(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl relative" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setIsEditing(false)} className="absolute top-6 right-6 p-2 hover:bg-zinc-100 rounded-full">
+              <X className="w-5 h-5 text-zinc-400" />
+            </button>
+            <h4 className="text-xl font-bold mb-6">Edit Client Profile</h4>
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-zinc-400">Name</label>
+                <input
+                  value={editForm.name}
+                  onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-zinc-400">Phone</label>
+                <input
+                  value={editForm.phone}
+                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase text-zinc-400">Notes</label>
+                <textarea
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                  className="w-full px-4 py-3 rounded-xl border h-24 focus:ring-2 focus:ring-brand-primary outline-none"
+                  placeholder="Preferences, allergies, notes..."
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" disabled={saving} className="flex-1 py-3 bg-brand-primary text-white rounded-xl font-medium disabled:opacity-60">
+                  {saving ? "Saving..." : "Save Changes"}
+                </button>
+                <button type="button" onClick={() => setIsEditing(false)} className="px-6 py-3 bg-zinc-100 text-zinc-600 rounded-xl font-medium">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

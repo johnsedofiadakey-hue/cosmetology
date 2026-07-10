@@ -30,11 +30,19 @@ export default function AdminDashboard() {
 
   const currency = stats?.currencySymbol || "GH₵";
 
+  const formatTrend = (value: number | undefined) => {
+    if (value === undefined) return "—";
+    return `${value >= 0 ? "+" : ""}${value}%`;
+  };
+
   const statCards = [
-    { name: "Total Revenue", value: `${currency}${stats?.totalRevenue?.toLocaleString()}`, icon: DollarSign, trend: "+12.5%", color: "bg-emerald-100 text-emerald-600" },
-    { name: "Appointments", value: stats?.appointmentCount?.toString(), icon: Calendar, trend: "+5.2%", color: "bg-brand-secondary/50 text-brand-primary" },
-    { name: "New Clients", value: stats?.newClientsCount?.toString(), icon: Users, trend: "+18%", color: "bg-brand-accent/20 text-brand-accent" },
+    { name: "Total Revenue", value: `${currency}${stats?.totalRevenue?.toLocaleString()}`, icon: DollarSign, trend: formatTrend(stats?.trends?.revenue), positive: (stats?.trends?.revenue ?? 0) >= 0, color: "bg-emerald-100 text-emerald-600" },
+    { name: "Appointments", value: stats?.appointmentCount?.toString(), icon: Calendar, trend: formatTrend(stats?.trends?.appointments), positive: (stats?.trends?.appointments ?? 0) >= 0, color: "bg-brand-secondary/50 text-brand-primary" },
+    { name: "New Clients", value: stats?.newClientsCount?.toString(), icon: Users, trend: formatTrend(stats?.trends?.newClients), positive: (stats?.trends?.newClients ?? 0) >= 0, color: "bg-brand-accent/20 text-brand-accent" },
   ];
+
+  const monthlyRevenue: { label: string; revenue: number }[] = stats?.monthlyRevenue || [];
+  const maxMonthlyRevenue = Math.max(1, ...monthlyRevenue.map((m) => m.revenue));
 
   return (
     <div className="space-y-8">
@@ -117,8 +125,8 @@ export default function AdminDashboard() {
                 <p className="text-2xl font-bold">{stat.value}</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 text-emerald-600 font-bold text-xs">
-              <ArrowUpRight className="w-3 h-3" />
+            <div className={`flex items-center gap-1 font-bold text-xs ${stat.positive ? 'text-emerald-600' : 'text-red-500'}`}>
+              <ArrowUpRight className={`w-3 h-3 ${stat.positive ? '' : 'rotate-90'}`} />
               {stat.trend}
             </div>
           </div>
@@ -129,27 +137,33 @@ export default function AdminDashboard() {
         <div className="bg-white p-8 rounded-[40px] border shadow-sm">
           <div className="flex justify-between items-center mb-8">
             <h4 className="text-xl font-bold">Revenue Growth</h4>
-            <select className="bg-zinc-50 border-none text-xs font-bold rounded-lg px-3 py-2 outline-none">
-              <option>Last 6 Months</option>
-              <option>Year to Date</option>
-            </select>
+            <span className="bg-zinc-50 text-xs font-bold rounded-lg px-3 py-2 text-zinc-500">Last 6 Months</span>
           </div>
-          <div className="flex items-end gap-3 h-48 px-2">
-            {[40, 65, 45, 90, 75, 100].map((height, i) => (
-              <div key={i} className="flex-1 group relative">
-                <div 
-                  className="w-full bg-brand-primary/10 rounded-t-xl group-hover:bg-brand-primary transition-all duration-500 cursor-pointer"
-                  style={{ height: `${height}%` }}
-                />
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                  {currency}{(height * 42).toLocaleString()}
-                </div>
+          {monthlyRevenue.length > 0 ? (
+            <>
+              <div className="flex items-end gap-3 h-48 px-2">
+                {monthlyRevenue.map((month, i) => {
+                  const heightPct = Math.max(4, Math.round((month.revenue / maxMonthlyRevenue) * 100));
+                  return (
+                    <div key={i} className="flex-1 group relative">
+                      <div
+                        className="w-full bg-brand-primary/10 rounded-t-xl group-hover:bg-brand-primary transition-all duration-500 cursor-pointer"
+                        style={{ height: `${heightPct}%` }}
+                      />
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-zinc-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        {currency}{month.revenue.toLocaleString()}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-          <div className="flex justify-between mt-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
-          </div>
+              <div className="flex justify-between mt-4 text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                {monthlyRevenue.map((month, i) => <span key={i}>{month.label}</span>)}
+              </div>
+            </>
+          ) : (
+            <p className="text-center text-zinc-400 py-16">No revenue data yet.</p>
+          )}
         </div>
 
         <div className="bg-white p-8 rounded-[40px] border shadow-sm">

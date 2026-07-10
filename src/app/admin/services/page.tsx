@@ -2,12 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Scissors, Plus, Search, MoreVertical, Trash2 } from "lucide-react";
+import { Scissors, Plus, Pencil, Trash2 } from "lucide-react";
+
+const EMPTY_SERVICE = { name: "", price: "", duration: "", category: "Hair", description: "", imageUrl: "" };
 
 export default function AdminServices() {
-  const [newService, setNewService] = useState({ name: "", price: "", duration: "", category: "Hair", description: "", imageUrl: "" });
+  const [formState, setFormState] = useState(EMPTY_SERVICE);
   const [services, setServices] = useState<any[]>([]);
-  const [isAdding, setIsAdding] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [currency, setCurrency] = useState("GH₵");
 
   useEffect(() => {
@@ -17,18 +20,51 @@ export default function AdminServices() {
     });
   }, []);
 
-  const handleAdd = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("/api/services", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...newService, price: parseFloat(newService.price), duration: parseInt(newService.duration) })
+  const openAdd = () => {
+    setEditingId(null);
+    setFormState(EMPTY_SERVICE);
+    setIsOpen(true);
+  };
+
+  const openEdit = (service: any) => {
+    setEditingId(service.id);
+    setFormState({
+      name: service.name || "",
+      price: String(service.price ?? ""),
+      duration: String(service.duration ?? ""),
+      category: service.category || "Hair",
+      description: service.description || "",
+      imageUrl: service.image || "",
     });
-    if (res.ok) {
-      const added = await res.json();
-      setServices([...services, added]);
-      setIsAdding(false);
-      setNewService({ name: "", price: "", duration: "", category: "Hair", description: "", imageUrl: "" });
+    setIsOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = { ...formState, price: parseFloat(formState.price), duration: parseInt(formState.duration) };
+
+    if (editingId) {
+      const res = await fetch("/api/services", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: editingId, ...payload })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setServices(services.map(s => s.id === editingId ? updated : s));
+        setIsOpen(false);
+      }
+    } else {
+      const res = await fetch("/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        const added = await res.json();
+        setServices([...services, added]);
+        setIsOpen(false);
+      }
     }
   };
 
@@ -54,7 +90,7 @@ export default function AdminServices() {
       });
       const data = await res.json();
       if (data.success) {
-        setNewService({ ...newService, imageUrl: data.url });
+        setFormState({ ...formState, imageUrl: data.url });
       }
     } catch (error) {
       console.error("Upload failed:", error);
@@ -68,71 +104,71 @@ export default function AdminServices() {
           <h3 className="text-3xl font-serif text-brand-primary">Service Menu</h3>
           <p className="text-zinc-500">Define your treatments and their professional pricing.</p>
         </div>
-        <Button onClick={() => setIsAdding(true)} className="gap-2">
+        <Button onClick={openAdd} className="gap-2">
           <Plus className="w-4 h-4" /> Add Service
         </Button>
       </div>
 
-      {isAdding && (
+      {isOpen && (
         <div className="bg-white p-8 rounded-3xl border shadow-lg animate-in fade-in slide-in-from-top-4">
-          <h4 className="text-xl font-bold mb-6">New Treatment</h4>
-          <form onSubmit={handleAdd} className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          <h4 className="text-xl font-bold mb-6">{editingId ? "Edit Treatment" : "New Treatment"}</h4>
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Name</label>
-              <input 
-                value={newService.name || ""} 
-                onChange={e => setNewService({...newService, name: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none" 
+              <input
+                value={formState.name || ""}
+                onChange={e => setFormState({...formState, name: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
                 placeholder="e.g. Signature Facial"
                 required
               />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Price ({currency})</label>
-              <input 
-                type="number" 
-                value={newService.price || ""} 
-                onChange={e => setNewService({...newService, price: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none" 
+              <input
+                type="number"
+                value={formState.price || ""}
+                onChange={e => setFormState({...formState, price: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
                 placeholder="0.00"
                 required
               />
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Duration (min)</label>
-              <input 
-                type="number" 
-                value={newService.duration || ""} 
-                onChange={e => setNewService({...newService, duration: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none" 
+              <input
+                type="number"
+                value={formState.duration || ""}
+                onChange={e => setFormState({...formState, duration: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
                 placeholder="60"
                 required
               />
             </div>
             <div className="md:col-span-2 space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Description</label>
-              <textarea 
-                value={newService.description || ""} 
-                onChange={e => setNewService({...newService, description: e.target.value})}
-                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none h-12" 
+              <textarea
+                value={formState.description || ""}
+                onChange={e => setFormState({...formState, description: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none h-12"
                 placeholder="Brief description of the service..."
               />
             </div>
             <div className="md:col-span-2 space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Upload Service Image</label>
               <div className="flex flex-col gap-2">
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   accept="image/*"
                   onChange={uploadFile}
                   className="text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer"
                 />
-                {newService.imageUrl && <p className="text-[10px] text-zinc-400 truncate">Uploaded: {newService.imageUrl}</p>}
+                {formState.imageUrl && <p className="text-[10px] text-zinc-400 truncate">Uploaded: {formState.imageUrl}</p>}
               </div>
             </div>
             <div className="flex items-end gap-2 md:col-span-4">
-              <Button type="submit" className="flex-1 h-[50px]">Save Treatment</Button>
-              <Button type="button" variant="outline" onClick={() => setIsAdding(false)} className="h-[50px]">Cancel</Button>
+              <Button type="submit" className="flex-1 h-[50px]">{editingId ? "Save Changes" : "Save Treatment"}</Button>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="h-[50px]">Cancel</Button>
             </div>
           </form>
         </div>
@@ -145,12 +181,20 @@ export default function AdminServices() {
               <div className="w-12 h-12 rounded-2xl bg-brand-secondary/50 flex items-center justify-center text-brand-primary">
                 <Scissors className="w-6 h-6" />
               </div>
-              <button 
-                onClick={() => handleDelete(service.id)}
-                className="text-zinc-300 hover:text-red-500 transition-colors"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => openEdit(service)}
+                  className="text-zinc-300 hover:text-brand-primary transition-colors"
+                >
+                  <Pencil className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => handleDelete(service.id)}
+                  className="text-zinc-300 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
             </div>
             <h4 className="text-lg font-bold">{service.name}</h4>
             <p className="text-zinc-500 text-sm mb-6">{service.category} • {service.duration} mins</p>
