@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, User as UserIcon, History, FlaskConical, MessageSquare, Pencil, Loader2, X } from "lucide-react";
+import { Search, User as UserIcon, History, FlaskConical, MessageSquare, Pencil, Loader2, X, ArrowLeft } from "lucide-react";
 
 export default function ClientVault() {
   const [clients, setClients] = useState<any[]>([]);
@@ -75,10 +75,14 @@ export default function ClientVault() {
     );
   }
 
+  const detailPanelClasses = selectedClient
+    ? "fixed inset-0 z-50 p-4 md:p-0 md:static md:z-auto md:w-[450px] md:translate-x-0 md:opacity-100 translate-x-0 opacity-100"
+    : "hidden md:block md:w-[450px] md:absolute md:right-0 md:translate-x-full md:opacity-0";
+
   return (
-    <div className="flex h-[calc(100vh-12rem)] gap-8">
+    <div className="relative flex h-[calc(100vh-12rem)] gap-4 md:gap-8">
       {/* Client List */}
-      <div className="flex-1 bg-white rounded-3xl shadow-sm border overflow-hidden flex flex-col">
+      <div className={`flex-1 bg-white rounded-3xl shadow-sm border overflow-hidden flex-col ${selectedClient ? 'hidden md:flex' : 'flex'}`}>
         <div className="p-6 border-b bg-zinc-50/50">
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 w-5 h-5" />
@@ -92,8 +96,8 @@ export default function ClientVault() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <table className="w-full text-left">
+        <div className="flex-1 overflow-auto">
+          <table className="w-full text-left min-w-[560px]">
             <thead className="bg-zinc-50 border-b sticky top-0">
               <tr className="text-xs uppercase tracking-widest text-zinc-500">
                 <th className="px-8 py-4 font-bold">Client Name</th>
@@ -134,10 +138,16 @@ export default function ClientVault() {
       </div>
 
       {/* Client Detail Side Panel */}
-      <div className={`w-[450px] transition-all duration-500 ${selectedClient ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0 absolute right-0'}`}>
-        <div className="bg-white rounded-3xl shadow-xl border h-full overflow-y-auto p-8">
+      <div className={`w-full transition-all duration-500 ${detailPanelClasses}`}>
+        <div className="bg-white rounded-3xl shadow-xl border h-full overflow-y-auto p-6 md:p-8">
           {selectedClient ? (
             <div className="space-y-10">
+              <button
+                onClick={() => setSelectedClient(null)}
+                className="md:hidden flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-brand-primary"
+              >
+                <ArrowLeft className="w-4 h-4" /> Back to Clients
+              </button>
               {/* Profile Header */}
               <div className="text-center">
                 <div className="w-24 h-24 rounded-full bg-brand-secondary/50 mx-auto mb-4 flex items-center justify-center text-brand-primary border-4 border-white shadow-lg">

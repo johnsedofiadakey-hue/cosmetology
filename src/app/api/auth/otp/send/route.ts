@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readStore, updateStore } from '@/lib/data-store';
+import { readStore, updateStore, findClientByPhone } from '@/lib/data-store';
 
 export async function POST(request: Request) {
   try {
@@ -13,11 +13,7 @@ export async function POST(request: Request) {
 
     // 1. Find the client and linked user profile
     const store = await readStore();
-    const client = store.clients.find((c) => {
-      if (!c.phone) return false;
-      const cleanC = c.phone.replace(/[\s\-\+\(\)]/g, "");
-      return cleanC.endsWith(cleanInput) || cleanInput.endsWith(cleanC);
-    });
+    const client = findClientByPhone(store, phone);
 
     if (!client) {
       return NextResponse.json({ error: 'No account registered with this phone number. Please book an appointment first.' }, { status: 404 });

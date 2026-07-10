@@ -32,7 +32,7 @@ function SuccessContent() {
         
         <h1 className="text-5xl font-serif text-brand-primary mb-4">Booking Secured!</h1>
         <p className="text-lg text-zinc-500 mb-10">
-          Your transformation is on the calendar. We've sent a confirmation and digital receipt to your email.
+          Your transformation is on the calendar. We look forward to seeing you.
         </p>
 
         <div className="bg-brand-primary/5 rounded-3xl p-6 mb-10 border border-brand-primary/10 text-left">

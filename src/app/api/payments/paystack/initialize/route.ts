@@ -1,15 +1,28 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { updateStore } from '@/lib/data-store';
+import { readStore, updateStore } from '@/lib/data-store';
 
 export async function POST(request: Request) {
   try {
-    const { appointmentId, email, amount } = await request.json();
+    const { appointmentId, amount } = await request.json();
 
-    if (!appointmentId || !email || !amount) {
+    if (!appointmentId || !amount) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    // Booking never collects an email (clients are identified by phone), but
+    // Paystack's API requires one — derive it from the client record if
+    // they happen to have one on file, otherwise synthesize a placeholder.
+    const store = await readStore();
+    const appointmentForEmail = store.appointments.find((item) => item.id === appointmentId);
+    const clientForEmail = appointmentForEmail
+      ? store.clients.find((item) => item.id === appointmentForEmail.clientId)
+      : null;
+    const clientUser = clientForEmail
+      ? store.users.find((item) => item.id === clientForEmail.userId)
+      : null;
+    const email = clientUser?.email || `guest+${appointmentId}@loubeautyhub.com`;
 
     // 1. Get Paystack Secret Key from environment
     const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;

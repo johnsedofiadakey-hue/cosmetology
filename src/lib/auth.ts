@@ -1,7 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { readStore } from "@/lib/data-store";
+import { readStore, findClientByPhone } from "@/lib/data-store";
 
 // Seed/legacy accounts may still have a plaintext password if the store was
 // created before hashing was introduced. bcrypt hashes always start with
@@ -28,15 +28,7 @@ export const authOptions: NextAuthOptions = {
 
         // 1. Phone number authentication (Client Portal)
         if (credentials?.phone) {
-          const phoneInput = credentials.phone.trim();
-          
-          // Find the client with this phone number (ignoring spacing or formatting variations)
-          const client = store.clients.find((c) => {
-            if (!c.phone) return false;
-            const cleanC = c.phone.replace(/[\s\-\+\(\)]/g, "");
-            const cleanInput = phoneInput.replace(/[\s\-\+\(\)]/g, "");
-            return cleanC.endsWith(cleanInput) || cleanInput.endsWith(cleanC);
-          });
+          const client = findClientByPhone(store, credentials.phone.trim());
 
           if (!client) {
             console.log("[AUTH] Client phone not found:", credentials.phone);

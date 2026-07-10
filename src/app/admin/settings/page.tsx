@@ -30,7 +30,8 @@ export default function SettingsPage() {
     contactPhone: "",
     address: "",
     currencySymbol: "GH₵",
-    enableOTP: false,
+    enableOTP: true,
+    requireDeposit: false,
   });
 
   const [loading, setLoading] = useState(true);
@@ -406,6 +407,18 @@ export default function SettingsPage() {
                       className={`w-12 h-6 rounded-full transition-colors relative ${settings.enableOTP ? 'bg-brand-primary' : 'bg-zinc-300'}`}
                     >
                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.enableOTP ? 'right-1' : 'left-1'}`} />
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
+                    <div>
+                      <p className="text-sm font-bold">Require Online Deposit</p>
+                      <p className="text-xs text-zinc-500">Off: clients confirm booking and pay by cash/Mobile Money in person. On: requires a Paystack deposit at booking.</p>
+                    </div>
+                    <button
+                      onClick={() => setSettings({...settings, requireDeposit: !settings.requireDeposit})}
+                      className={`w-12 h-6 rounded-full transition-colors relative ${settings.requireDeposit ? 'bg-brand-primary' : 'bg-zinc-300'}`}
+                    >
+                      <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.requireDeposit ? 'right-1' : 'left-1'}`} />
                     </button>
                   </div>
                 </div>

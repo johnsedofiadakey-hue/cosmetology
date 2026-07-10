@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { format, addDays, startOfToday, isSameDay } from "date-fns";
-import { ChevronRight, ChevronLeft, Check, Calendar, Clock, User, CreditCard, Scissors } from "lucide-react";
+import { ChevronRight, ChevronLeft, Check, Calendar, Clock, User, Phone, Banknote, CreditCard, Scissors } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import confetti from "canvas-confetti";
 import { Skeleton } from "@/components/ui/skeleton";
+import { normalizeGhanaPhone, formatSlotLabel } from "@/lib/utils";
 
 type Step = "service" | "datetime" | "details" | "payment";
 
@@ -22,8 +23,9 @@ export default function BookingPage() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [clientData, setClientData] = useState({ name: "", email: "", phone: "" });
+  const [clientData, setClientData] = useState({ name: "", phone: "" });
   const [currency, setCurrency] = useState("GH₵");
+  const [requireDeposit, setRequireDeposit] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
@@ -36,11 +38,12 @@ export default function BookingPage() {
         setServices(data);
         setIsLoadingServices(false);
       });
-    
+
     fetch("/api/settings")
       .then(res => res.json())
       .then(data => {
         if (data.currencySymbol) setCurrency(data.currencySymbol);
+        setRequireDeposit(!!data.requireDeposit);
       });
   }, []);
 
@@ -57,7 +60,8 @@ export default function BookingPage() {
     }
   }, [selectedDate]);
 
-  const steps: Step[] = ["service", "datetime", "details", "payment"];
+  const skipPayment = isAdmin || !requireDeposit;
+  const steps: Step[] = skipPayment ? ["service", "datetime", "details"] : ["service", "datetime", "details", "payment"];
   const stepIndex = steps.indexOf(currentStep);
 
   const days = Array.from({ length: 14 }, (_, i) => addDays(startOfToday(), i));
@@ -69,7 +73,7 @@ export default function BookingPage() {
     if (currentStep === "service") setCurrentStep("datetime");
     else if (currentStep === "datetime") setCurrentStep("details");
     else if (currentStep === "details") {
-      if (isAdmin) {
+      if (skipPayment) {
         await finalizeBooking();
       } else {
         setCurrentStep("payment");
@@ -81,6 +85,7 @@ export default function BookingPage() {
   };
 
   const finalizeBooking = async () => {
+    const normalizedPhone = normalizeGhanaPhone(clientData.phone);
     const res = await fetch("/api/bookings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -88,22 +93,22 @@ export default function BookingPage() {
         serviceIds: selectedServices.map(s => s.id),
         startTime: `${format(selectedDate, 'yyyy-MM-dd')}T${selectedTime}:00`,
         name: clientData.name,
-        email: clientData.email,
-        phone: clientData.phone,
+        phone: normalizedPhone,
         staffId: "solo-staff-id"
       })
     });
 
     if (res.ok) {
       const appointment = await res.json();
-      
+
       // Save phone to localStorage so they can auto-fill it when logging in
       if (typeof window !== "undefined") {
-        localStorage.setItem("client_phone", clientData.phone);
+        localStorage.setItem("client_phone", normalizedPhone);
       }
 
-      // If Admin, just show success
-      if (isAdmin) {
+      // No online payment required (admin booking, or deposits are off) —
+      // clients pay by cash/Mobile Money at the appointment.
+      if (skipPayment) {
         setIsSuccess(true);
         confetti({
           particleCount: 150,
@@ -114,14 +119,13 @@ export default function BookingPage() {
         return;
       }
 
-      // If User, Redirect to Paystack
+      // Deposits are required — redirect to Paystack.
       setIsRedirecting(true);
       const payRes = await fetch("/api/payments/paystack/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           appointmentId: appointment.id,
-          email: clientData.email,
           amount: totalPrice * 0.2 // 20% Deposit
         })
       });
@@ -182,7 +186,7 @@ export default function BookingPage() {
                   <Check className="w-12 h-12 text-emerald-600" />
                </div>
                <h2 className="text-4xl font-serif text-brand-primary mb-4">Confirmed!</h2>
-               <p className="text-lg text-zinc-600 mb-8">Your appointment for {selectedServices.length} services has been secured. We've sent the details to your email.</p>
+               <p className="text-lg text-zinc-600 mb-8">Your appointment for {selectedServices.length} service{selectedServices.length === 1 ? "" : "s"} has been secured. We'll see you soon!</p>
                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
                  <Link 
                    href="/portal" 
@@ -298,7 +302,7 @@ export default function BookingPage() {
                         selectedTime === time ? "border-brand-primary bg-brand-primary text-white" : "border-zinc-100 hover:border-brand-accent"
                       }`}
                     >
-                      {time}
+                      {formatSlotLabel(time)}
                     </button>
                   ))
                 ) : (
@@ -313,43 +317,43 @@ export default function BookingPage() {
             <div className="space-y-8">
               <div className="text-center">
                 <h2 className="text-3xl font-serif text-brand-primary mb-2">Your Information</h2>
-                <p className="text-zinc-500">We'll use this to send your confirmation.</p>
+                <p className="text-zinc-500">We'll use this to confirm your booking and reach you.</p>
               </div>
               <div className="space-y-4 max-w-md mx-auto">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Full Name</label>
-                  <input 
-                    type="text" 
+                  <input
+                    type="text"
                     value={clientData.name}
                     onChange={(e) => setClientData({...clientData, name: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none" 
+                    className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
                     placeholder="Jane Doe"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Email Address</label>
-                  <input 
-                    type="email" 
-                    inputMode="email"
-                    autoComplete="email"
-                    value={clientData.email}
-                    onChange={(e) => setClientData({...clientData, email: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
-                    placeholder="jane@example.com"
-                  />
-                </div>
-                <div className="space-y-2">
                   <label className="text-sm font-medium">Phone Number</label>
-                  <input 
-                    type="tel" 
-                    inputMode="tel"
-                    autoComplete="tel"
-                    value={clientData.phone}
-                    onChange={(e) => setClientData({...clientData, phone: e.target.value})}
-                    className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
-                    placeholder="+1 (555) 000-0000"
-                  />
+                  <div className="relative flex items-stretch">
+                    <div className="flex items-center gap-1.5 pl-4 pr-3 rounded-l-xl border border-r-0 bg-zinc-50 text-zinc-500 font-bold text-sm">
+                      <Phone className="w-4 h-4 text-zinc-300" />
+                      +233
+                    </div>
+                    <input
+                      type="tel"
+                      inputMode="numeric"
+                      autoComplete="tel-national"
+                      value={clientData.phone}
+                      onChange={(e) => setClientData({...clientData, phone: e.target.value.replace(/\D/g, "")})}
+                      className="w-full pl-3 pr-4 py-3 rounded-r-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                      placeholder="0541234567 or 541234567"
+                    />
+                  </div>
                 </div>
+                {skipPayment && (
+                  <div className="flex items-center gap-3 p-4 bg-emerald-50 rounded-xl text-emerald-800 text-sm">
+                    <Banknote className="w-5 h-5 flex-shrink-0" />
+                    <p>No online payment needed — pay by Mobile Money or cash when you arrive.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -420,11 +424,17 @@ export default function BookingPage() {
                 isRedirecting ||
                 (currentStep === "service" && selectedServices.length === 0) ||
                 (currentStep === "datetime" && !selectedTime) ||
-                (currentStep === "details" && (!clientData.name || !clientData.email))
+                (currentStep === "details" && (!clientData.name || clientData.phone.replace(/\D/g, "").length < 9))
               }
             >
-              {isRedirecting ? "Redirecting..." : currentStep === "payment" ? "Confirm & Pay" : "Continue"}
-              {!isRedirecting && currentStep !== "payment" && <ChevronRight className="w-5 h-5 ml-2" />}
+              {isRedirecting
+                ? "Redirecting..."
+                : currentStep === "payment"
+                ? "Confirm & Pay"
+                : currentStep === "details" && skipPayment
+                ? "Confirm Booking"
+                : "Continue"}
+              {!isRedirecting && currentStep !== "payment" && !(currentStep === "details" && skipPayment) && <ChevronRight className="w-5 h-5 ml-2" />}
             </Button>
           </div>
         </div>

@@ -59,10 +59,36 @@ export function Services({ settings }: { settings?: any }) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Compact list on mobile — tap a row to read the full details */}
+        <div className="grid grid-cols-1 gap-3 md:hidden">
           {services.map((service, index) => (
-            <div 
-              key={service.id || index} 
+            <button
+              key={service.id || index}
+              onClick={() => setActiveService(service)}
+              className="flex items-center gap-4 bg-white rounded-2xl p-3 text-left shadow-sm ring-1 ring-zinc-100 active:scale-[0.98] transition-transform"
+            >
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                <Image
+                  src={service.image || "/service_hair.png"}
+                  alt={service.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-serif text-brand-primary text-lg truncate">{service.name}</h3>
+                <p className="text-xs text-zinc-500">{service.duration || '60'} mins {service.price ? `• ${currency}${service.price}` : ""}</p>
+              </div>
+              <ChevronRight className="w-5 h-5 text-zinc-300 flex-shrink-0" />
+            </button>
+          ))}
+        </div>
+
+        {/* Full editorial cards on tablet/desktop */}
+        <div className="hidden md:grid md:grid-cols-3 gap-8">
+          {services.map((service, index) => (
+            <div
+              key={service.id || index}
               onClick={() => setActiveService(service)}
               className="group relative bg-white rounded-[2.5rem] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 cursor-pointer border-0 ring-1 ring-zinc-100 hover:ring-brand-accent/30"
             >

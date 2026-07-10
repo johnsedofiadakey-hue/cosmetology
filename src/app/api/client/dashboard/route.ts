@@ -6,12 +6,13 @@ import { createId, readStore, updateStore } from '@/lib/data-store';
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const userId = (session?.user as any)?.id;
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const data = await updateStore((store) => {
-      const user = store.users.find((item) => item.email.toLowerCase() === session.user?.email?.toLowerCase());
+      const user = store.users.find((item) => item.id === userId);
       if (!user) return null;
 
       let clientProfile = store.clients.find((client) => client.userId === user.id);

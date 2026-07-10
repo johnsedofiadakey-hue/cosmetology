@@ -33,6 +33,9 @@ export const defaultSettings = {
   twitterUrl: "",
   currencySymbol: "GH₵",
   paystackPublicKey: "",
+  // Off by default: clients pay by cash/Mobile Money in person, so booking
+  // doesn't require an online deposit until Paystack is actually wired up.
+  requireDeposit: false,
   enableOTP: true,
   updatedAt: new Date(0).toISOString(),
 };

@@ -15,6 +15,18 @@ export type Store = {
 
 const STORE_FILE = "app-state/store.json";
 
+// Client phones may be stored in slightly different formats over time
+// (with/without +, spaces, dashes, or the leading 0 vs "233" prefix), so
+// matching is done by suffix rather than exact equality.
+export function findClientByPhone(store: Store, phoneInput: string) {
+  const cleanInput = phoneInput.replace(/[\s\-\+\(\)]/g, "");
+  return store.clients.find((c) => {
+    if (!c.phone) return false;
+    const cleanC = c.phone.replace(/[\s\-\+\(\)]/g, "");
+    return cleanC.endsWith(cleanInput) || cleanInput.endsWith(cleanC);
+  });
+}
+
 function cloneDefaultStore(): Store {
   return JSON.parse(JSON.stringify(defaultStore));
 }

@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Phone, Lock, ArrowRight, ShieldCheck, ArrowLeft } from "lucide-react";
+import { normalizeGhanaPhone, stripGhanaPrefix } from "@/lib/utils";
 
 export default function ClientPortalAuth() {
   const [phone, setPhone] = useState("");
@@ -18,16 +19,37 @@ export default function ClientPortalAuth() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/admin/settings").then(res => res.json()).then(data => setSettings(data));
-    
+    fetch("/api/settings").then(res => res.json()).then(data => setSettings(data));
+
     // Auto-fill phone from localStorage if present
     if (typeof window !== "undefined") {
       const savedPhone = localStorage.getItem("client_phone");
       if (savedPhone) {
-        setPhone(savedPhone);
+        setPhone(stripGhanaPrefix(savedPhone));
       }
     }
   }, []);
+
+  const fullPhone = () => normalizeGhanaPhone(phone);
+
+  const sendOtp = async () => {
+    const res = await fetch("/api/auth/otp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ phone: fullPhone() }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setStep("otp");
+      if (data.simulated) {
+        alert(`[SIMULATOR] Verification code sent! Use code: ${data.otpCode}`);
+      } else {
+        alert("Verification code has been sent to your phone number.");
+      }
+    } else {
+      setError(data.error || "Failed to send verification code. Please try again.");
+    }
+  };
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,22 +57,7 @@ export default function ClientPortalAuth() {
     setLoading(true);
     if (settings?.enableOTP) {
       try {
-        const res = await fetch("/api/auth/otp/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ phone }),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setStep("otp");
-          if (data.simulated) {
-            alert(`[SIMULATOR] Verification code sent! Use code: ${data.otpCode}`);
-          } else {
-            alert("Verification code has been sent to your phone number.");
-          }
-        } else {
-          setError(data.error || "Failed to send verification code. Please try again.");
-        }
+        await sendOtp();
       } catch (err) {
         setError("Failed to connect to the server. Please try again.");
       } finally {
@@ -70,7 +77,7 @@ export default function ClientPortalAuth() {
     try {
       const result = await signIn("credentials", {
         redirect: false,
-        phone,
+        phone: fullPhone(),
         password: step === "password" ? password : "",
         otp: step === "otp" ? otp : "",
       });
@@ -90,15 +97,15 @@ export default function ClientPortalAuth() {
 
   return (
     <div className="min-h-screen bg-brand-primary flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-[40px] p-10 shadow-2xl relative overflow-hidden">
+      <div className="max-w-md w-full bg-white rounded-[40px] p-8 sm:p-10 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-brand-accent" />
         <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-zinc-400 hover:text-brand-primary transition-colors text-xs font-bold uppercase tracking-widest group">
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-          Back to Website
+          <span className="hidden sm:inline">Back to Website</span>
         </Link>
-        
-        <div className="text-center mb-10">
-          <h2 className="text-4xl font-serif text-brand-primary mb-2">{settings?.companyName || "LOÙ Beauty Hub"} Portal</h2>
+
+        <div className="text-center mb-10 mt-8 sm:mt-0">
+          <h2 className="text-3xl sm:text-4xl font-serif text-brand-primary mb-2">{settings?.companyName || "LOÙ Beauty Hub"} Portal</h2>
           <p className="text-zinc-400 text-sm">Access your treatment history and book new sessions.</p>
         </div>
 
@@ -118,14 +125,18 @@ export default function ClientPortalAuth() {
                     <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded-full">Prefilled</span>
                   )}
                 </div>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300" />
-                  <input 
-                    type="tel" 
+                <div className="relative flex items-stretch">
+                  <div className="flex items-center gap-1.5 pl-4 pr-3 rounded-l-2xl border border-r-0 bg-zinc-50 text-zinc-500 font-bold text-sm">
+                    <Phone className="w-4 h-4 text-zinc-300" />
+                    +233
+                  </div>
+                  <input
+                    type="tel"
+                    inputMode="numeric"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 rounded-2xl border focus:ring-2 focus:ring-brand-primary outline-none transition-all"
-                    placeholder="+233 00 000 0000"
+                    onChange={(e) => setPhone(e.target.value.replace(/\D/g, ""))}
+                    className="w-full pl-3 pr-4 py-4 rounded-r-2xl border focus:ring-2 focus:ring-brand-primary outline-none transition-all"
+                    placeholder="0541234567 or 541234567"
                     required
                     disabled={loading}
                   />
@@ -141,9 +152,9 @@ export default function ClientPortalAuth() {
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
               <div className="space-y-2 text-center">
                 <label className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Verification Code</label>
-                <p className="text-[10px] text-zinc-500 mb-4">Enter the 4-digit code sent to {phone}</p>
-                <input 
-                  type="text" 
+                <p className="text-[10px] text-zinc-500 mb-4">Enter the 4-digit code sent to +{fullPhone()}</p>
+                <input
+                  type="text"
                   maxLength={4}
                   value={otp}
                   onChange={(e) => setOtp(e.target.value)}
@@ -157,17 +168,17 @@ export default function ClientPortalAuth() {
                 {loading ? "Verifying..." : <>Verify & Enter <ShieldCheck className="w-5 h-5" /></>}
               </Button>
               <div className="flex flex-col gap-2 pt-2">
-                <button 
-                  type="button" 
-                  onClick={() => { if (!loading) setStep("password"); }} 
+                <button
+                  type="button"
+                  onClick={() => { if (!loading) setStep("password"); }}
                   className="w-full text-xs font-bold uppercase text-brand-primary hover:text-brand-accent transition-colors flex items-center justify-center gap-2"
                   disabled={loading}
                 >
                   Log in with password instead
                 </button>
-                <button 
-                  type="button" 
-                  onClick={() => { if (!loading) setStep("phone"); }} 
+                <button
+                  type="button"
+                  onClick={() => { if (!loading) setStep("phone"); }}
                   className="w-full py-2 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
                   disabled={loading}
                 >
@@ -183,8 +194,8 @@ export default function ClientPortalAuth() {
                 <label className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Secure Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-300" />
-                  <input 
-                    type="password" 
+                  <input
+                    type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-12 pr-4 py-4 rounded-2xl border focus:ring-2 focus:ring-brand-primary outline-none transition-all"
@@ -198,44 +209,29 @@ export default function ClientPortalAuth() {
                 {loading ? "Securing Session..." : <>Secure Login <ShieldCheck className="w-5 h-5" /></>}
               </Button>
               <div className="flex flex-col gap-2 pt-2">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   onClick={async () => {
                     if (!loading) {
                       setLoading(true);
                       setError("");
                       try {
-                        const res = await fetch("/api/auth/otp/send", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ phone }),
-                        });
-                        const data = await res.json();
-                        if (res.ok) {
-                          setStep("otp");
-                          if (data.simulated) {
-                            alert(`[SIMULATOR] Verification code sent! Use code: ${data.otpCode}`);
-                          } else {
-                            alert("Verification code has been sent to your phone number.");
-                          }
-                        } else {
-                          setError(data.error || "Failed to send verification code. Please try again.");
-                        }
+                        await sendOtp();
                       } catch (err) {
                         setError("Failed to connect to the server. Please try again.");
                       } finally {
                         setLoading(false);
                       }
                     }
-                  }} 
+                  }}
                   className="w-full text-xs font-bold uppercase text-brand-primary hover:text-brand-accent transition-colors flex items-center justify-center gap-2"
                   disabled={loading}
                 >
                   Forgot password? Use OTP code
                 </button>
-                <button 
-                  type="button" 
-                  onClick={() => { if (!loading) setStep("phone"); }} 
+                <button
+                  type="button"
+                  onClick={() => { if (!loading) setStep("phone"); }}
                   className="w-full py-2 text-xs font-bold uppercase text-zinc-400 hover:text-brand-primary transition-colors flex items-center justify-center gap-2"
                   disabled={loading}
                 >

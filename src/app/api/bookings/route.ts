@@ -3,7 +3,7 @@ import { addMinutes } from 'date-fns';
 import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { createId, readStore, updateStore } from '@/lib/data-store';
+import { createId, readStore, updateStore, findClientByPhone } from '@/lib/data-store';
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -31,8 +31,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { name, email, phone, staffId, serviceIds, startTime } = await request.json();
-    if (!name || !email || !Array.isArray(serviceIds) || !startTime) {
+    const { name, phone, staffId, serviceIds, startTime } = await request.json();
+    if (!name || !phone || !Array.isArray(serviceIds) || !startTime) {
       return NextResponse.json({ error: 'Missing required booking fields' }, { status: 400 });
     }
 
@@ -59,11 +59,16 @@ export async function POST(request: Request) {
 
       if (conflict) return { error: 'This time slot is already booked. Please try another time.', status: 409 };
 
-      let user = store.users.find((item) => item.email.toLowerCase() === email.toLowerCase());
+      // Clients are identified by phone (not email) — booking never asks for
+      // an email address, since the business only needs a phone number to
+      // reach customers and customers only ever log in via phone + OTP.
+      let client = findClientByPhone(store, phone);
+      let user = client ? store.users.find((item) => item.id === client.userId) : undefined;
+
       if (!user) {
         user = {
           id: createId("user"),
-          email,
+          email: "",
           name,
           // Guests don't set a password at booking time; generate a random
           // one (hashed, like any other credential) so the account still
@@ -75,7 +80,6 @@ export async function POST(request: Request) {
         store.users.push(user);
       }
 
-      let client = store.clients.find((item) => item.userId === user.id);
       if (!client) {
         client = {
           id: createId("client"),
@@ -84,7 +88,7 @@ export async function POST(request: Request) {
           notes: "",
         };
         store.clients.push(client);
-      } else if (phone) {
+      } else {
         client.phone = phone;
       }
 

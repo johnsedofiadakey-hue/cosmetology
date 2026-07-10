@@ -20,6 +20,8 @@ export async function GET() {
       contactEmail: settings?.contactEmail,
       contactPhone: settings?.contactPhone,
       address: settings?.address,
+      enableOTP: settings?.enableOTP || false,
+      requireDeposit: settings?.requireDeposit || false,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });

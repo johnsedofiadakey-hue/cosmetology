@@ -8,7 +8,6 @@ import { TrustStrip } from "@/components/landing/TrustStrip";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { FAQ } from "@/components/landing/FAQ";
 import { Footer } from "@/components/landing/Footer";
-import { SocialProof } from "@/components/landing/SocialProof";
 import { WhatsAppFloat } from "@/components/landing/WhatsAppFloat";
 import { MobileNav } from "@/components/landing/MobileNav";
 import { readStore } from "@/lib/data-store";
@@ -53,7 +52,6 @@ export default async function Home() {
       />
       
       <TrustStrip />
-      <SocialProof />
       <About />
       <Services settings={serializedSettings} />
       <Portfolio />

@@ -18,7 +18,7 @@ export function Footer({ settings }: { settings?: any }) {
           {/* Brand Column */}
           <div className="space-y-6">
             {settings?.logoUrl ? (
-              <div className="relative w-16 h-16 overflow-hidden rounded-full border border-white/20 shadow-md">
+              <div className="relative w-20 h-20 overflow-hidden rounded-full border border-white/20 shadow-md">
                 <img src={settings.logoUrl} alt={studioName} className="w-full h-full object-cover scale-[1.03]" />
               </div>
             ) : (

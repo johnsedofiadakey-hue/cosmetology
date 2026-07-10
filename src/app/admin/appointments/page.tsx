@@ -87,7 +87,8 @@ export default function AdminAppointments() {
 
       {view === "list" ? (
         <div className="bg-white rounded-[40px] shadow-sm border overflow-hidden">
-        <table className="w-full text-left">
+        <div className="overflow-x-auto">
+        <table className="w-full text-left min-w-[640px]">
           <thead className="bg-zinc-50 border-b">
             <tr className="text-xs uppercase tracking-widest text-zinc-500">
               <th className="px-8 py-4 font-bold">Client & Service</th>
@@ -192,9 +193,10 @@ export default function AdminAppointments() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
       ) : (
-        <CalendarGrid 
+        <CalendarGrid
           appointments={appointments} 
           onSelect={(apt) => setActiveInvoice(apt)} 
         />

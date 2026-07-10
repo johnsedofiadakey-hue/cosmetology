@@ -34,6 +34,7 @@ const EDITABLE_SETTINGS_FIELDS = [
   "currencySymbol",
   "paystackPublicKey",
   "enableOTP",
+  "requireDeposit",
 ] as const;
 
 function pickEditableSettings(body: Record<string, unknown>) {
