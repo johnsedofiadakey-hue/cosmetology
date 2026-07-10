@@ -7,13 +7,19 @@ export default function ClientVault() {
   const [clients, setClients] = useState<any[]>([]);
   const [selectedClient, setSelectedClient] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  
+  const [currency, setCurrency] = useState("GH₵");
+
   useEffect(() => {
     fetch("/api/admin/clients")
       .then(res => res.json())
       .then(data => {
         setClients(data);
         setLoading(false);
+      });
+    fetch("/api/settings")
+      .then(res => res.json())
+      .then(data => {
+        if (data.currencySymbol) setCurrency(data.currencySymbol);
       });
   }, []);
 
@@ -69,7 +75,7 @@ export default function ClientVault() {
                     </div>
                   </td>
                   <td className="px-8 py-6 text-sm">{client.lastVisit}</td>
-                  <td className="px-8 py-6 text-sm font-medium">${client.totalSpent.toFixed(2)}</td>
+                  <td className="px-8 py-6 text-sm font-medium">{currency}{client.totalSpent.toFixed(2)}</td>
                   <td className="px-8 py-6 text-right">
                     <button className="p-2 hover:bg-zinc-100 rounded-lg"><MoreVertical className="w-4 h-4 text-zinc-400" /></button>
                   </td>
@@ -138,7 +144,7 @@ export default function ClientVault() {
                             <span className="text-xs text-zinc-400">{h.date}</span>
                           </div>
                           <p className="text-xs text-zinc-500 italic mb-2">"{h.notes}"</p>
-                          <p className="text-xs font-bold text-brand-primary">${h.amount.toFixed(2)}</p>
+                          <p className="text-xs font-bold text-brand-primary">{currency}{h.amount.toFixed(2)}</p>
                         </div>
                      </div>
                    ))}

@@ -56,7 +56,7 @@ export function CalendarGrid({ appointments, onSelect }: { appointments: any[], 
                           <User className="w-2.5 h-2.5" />
                           <p className="text-[9px] font-bold truncate">{apt.client?.user?.name || 'Client'}</p>
                         </div>
-                        <p className="text-[8px] opacity-70 truncate">{apt.service?.name}</p>
+                        <p className="text-[8px] opacity-70 truncate">{apt.services?.map((s: any) => s.name).join(', ')}</p>
                         <div className="absolute bottom-2 right-2 opacity-0 group-hover/apt:opacity-100 transition-opacity">
                            <Clock className="w-3 h-3 text-brand-primary/40" />
                         </div>

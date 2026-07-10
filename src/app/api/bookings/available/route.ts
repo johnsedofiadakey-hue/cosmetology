@@ -5,6 +5,7 @@ import { readStore } from '@/lib/data-store';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const dateStr = searchParams.get('date');
+  const staffId = searchParams.get('staffId');
 
   if (!dateStr) return NextResponse.json({ error: 'Date is required' }, { status: 400 });
 
@@ -13,9 +14,19 @@ export async function GET(request: Request) {
     const dayStart = startOfDay(targetDate);
     const dayEnd = endOfDay(targetDate);
 
-    const appointments = (await readStore()).appointments.filter((apt) => {
+    const store = await readStore();
+    const resolvedStaffId = staffId && staffId !== "solo-staff-id"
+      ? staffId
+      : store.staff.find((member) => member.isActive)?.id;
+
+    const appointments = store.appointments.filter((apt) => {
       const start = new Date(apt.startTime);
-      return start >= dayStart && start <= dayEnd && apt.status !== 'CANCELLED';
+      return (
+        start >= dayStart &&
+        start <= dayEnd &&
+        apt.status !== 'CANCELLED' &&
+        (!resolvedStaffId || apt.staffId === resolvedStaffId)
+      );
     });
 
     // Generate slots every 30 minutes from 09:00 to 18:00
