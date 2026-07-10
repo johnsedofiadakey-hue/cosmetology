@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { addMinutes } from 'date-fns';
+import bcrypt from 'bcryptjs';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { createId, readStore, updateStore } from '@/lib/data-store';
@@ -64,7 +65,10 @@ export async function POST(request: Request) {
           id: createId("user"),
           email,
           name,
-          password: 'guest-password-' + Math.random().toString(36).slice(-8),
+          // Guests don't set a password at booking time; generate a random
+          // one (hashed, like any other credential) so the account still
+          // works if they later use "forgot password" via OTP or a reset flow.
+          password: bcrypt.hashSync(Math.random().toString(36).slice(2) + Date.now(), 10),
           role: 'CLIENT',
           createdAt: new Date().toISOString(),
         };

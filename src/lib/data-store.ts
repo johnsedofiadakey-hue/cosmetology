@@ -66,11 +66,66 @@ export async function writeStore(store: Store): Promise<void> {
   });
 }
 
+// Reads the store together with its GCS object generation, so a subsequent
+// write can be made conditional on nothing else having written in between.
+async function readStoreWithGeneration(): Promise<{ store: Store; generation: number | null }> {
+  const file = bucket.file(STORE_FILE);
+  const [exists] = await file.exists();
+  if (!exists) {
+    const initial = cloneDefaultStore();
+    try {
+      // ifGenerationMatch: 0 succeeds only if the object still doesn't exist,
+      // so two concurrent first-writers can't clobber each other.
+      await file.save(JSON.stringify(initial, null, 2), {
+        contentType: "application/json",
+        resumable: false,
+        metadata: { cacheControl: "private, no-store" },
+        preconditionOpts: { ifGenerationMatch: 0 },
+      });
+    } catch {
+      // Someone else created it first; fall through and read what they wrote.
+    }
+  }
+
+  const [contents] = await file.download();
+  const [metadata] = await file.getMetadata();
+  return {
+    store: mergeWithDefaults(JSON.parse(contents.toString("utf8"))),
+    generation: metadata.generation ? Number(metadata.generation) : null,
+  };
+}
+
+function isGenerationMismatch(error: any): boolean {
+  return error?.code === 412 || /precondition/i.test(error?.message || "");
+}
+
+// Read-modify-write with optimistic concurrency: the write only succeeds if
+// no other request modified the store since we read it, retrying on conflict.
+// This prevents concurrent admin actions from silently losing each other's
+// updates (the whole store is a single JSON blob, so naive read-then-write
+// is a lost-update race).
 export async function updateStore<T>(updater: (store: Store) => T | Promise<T>): Promise<T> {
-  const store = await readStore();
-  const result = await updater(store);
-  await writeStore(store);
-  return result;
+  const MAX_ATTEMPTS = 5;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const { store, generation } = await readStoreWithGeneration();
+    const result = await updater(store);
+
+    try {
+      await bucket.file(STORE_FILE).save(JSON.stringify(store, null, 2), {
+        contentType: "application/json",
+        resumable: false,
+        metadata: { cacheControl: "private, no-store" },
+        preconditionOpts: generation != null ? { ifGenerationMatch: generation } : undefined,
+      });
+      return result;
+    } catch (error) {
+      if (isGenerationMismatch(error) && attempt < MAX_ATTEMPTS) {
+        continue;
+      }
+      throw error;
+    }
+  }
+  throw new Error("Failed to update store: too many concurrent write conflicts");
 }
 
 export function createId(prefix: string): string {

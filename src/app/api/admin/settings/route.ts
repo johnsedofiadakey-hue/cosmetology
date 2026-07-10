@@ -4,6 +4,46 @@ import { authOptions } from "@/lib/auth";
 import { revalidatePath } from 'next/cache';
 import { readStore, updateStore } from '@/lib/data-store';
 
+// Only these fields may be written via the settings API — keeps a PATCH
+// request from injecting arbitrary keys (e.g. overwriting `id`) into the
+// single shared settings object.
+const EDITABLE_SETTINGS_FIELDS = [
+  "companyName",
+  "logoUrl",
+  "primaryColor",
+  "secondaryColor",
+  "accentColor",
+  "textPrimaryColor",
+  "textSecondaryColor",
+  "fontFamily",
+  "heroTitle",
+  "heroSubtitle",
+  "heroImage",
+  "heroVideoUrl",
+  "heroBackgroundImage",
+  "heroMediaType",
+  "contactEmail",
+  "contactPhone",
+  "address",
+  "whatsappNumber",
+  "instagramUrl",
+  "facebookUrl",
+  "tiktokUrl",
+  "youtubeUrl",
+  "twitterUrl",
+  "currencySymbol",
+  "paystackPublicKey",
+  "enableOTP",
+] as const;
+
+function pickEditableSettings(body: Record<string, unknown>) {
+  const update: Record<string, unknown> = {};
+  for (const field of EDITABLE_SETTINGS_FIELDS) {
+    if (field in body) update[field] = body[field];
+  }
+  return update;
+}
+
 export async function GET() {
   const session = await getServerSession(authOptions);
   if (!session || ((session.user as any).role !== "ADMIN" && (session.user as any).role !== "STAFF")) {
@@ -26,11 +66,12 @@ export async function PATCH(request: Request) {
 
   try {
     const body = await request.json();
-    
+    const update = pickEditableSettings(body);
+
     const settings = await updateStore((store) => {
       store.settings = {
         ...store.settings,
-        ...body,
+        ...update,
         id: 1,
         updatedAt: new Date().toISOString(),
       };

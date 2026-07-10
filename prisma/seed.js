@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
@@ -70,7 +71,7 @@ async function main() {
     create: {
       id: 'solo-owner-id',
       email: 'admin@beautystudio.com',
-      password: 'admin123',
+      password: bcrypt.hashSync('admin123', 10),
       name: 'Studio Owner',
       role: 'STAFF'
     }
@@ -93,7 +94,7 @@ async function main() {
     create: {
       id: 'default-client-user-id',
       email: 'jane@doe.com',
-      password: 'password123',
+      password: bcrypt.hashSync('password123', 10),
       name: 'Jane Doe',
       role: 'CLIENT'
     }

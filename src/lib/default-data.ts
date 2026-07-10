@@ -1,3 +1,5 @@
+import bcrypt from "bcryptjs";
+
 export const defaultSettings = {
   id: 1,
   companyName: "LOU Beauty Hub",
@@ -76,11 +78,13 @@ export const defaultInventory = [
   },
 ];
 
+// Seed-only plaintext passwords, hashed below before ever landing in the
+// store. Change these via the admin UI after first login in a real deployment.
 export const defaultUsers = [
   {
     id: "solo-owner-id",
     email: "admin@beautystudio.com",
-    password: "admin123",
+    password: bcrypt.hashSync("admin123", 10),
     name: "Studio Owner",
     role: "STAFF",
     createdAt: new Date(0).toISOString(),
@@ -88,7 +92,7 @@ export const defaultUsers = [
   {
     id: "default-client-user-id",
     email: "jane@doe.com",
-    password: "password123",
+    password: bcrypt.hashSync("password123", 10),
     name: "Jane Doe",
     role: "CLIENT",
     createdAt: new Date(0).toISOString(),

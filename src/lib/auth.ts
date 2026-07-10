@@ -1,6 +1,17 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { readStore } from "@/lib/data-store";
+
+// Seed/legacy accounts may still have a plaintext password if the store was
+// created before hashing was introduced. bcrypt hashes always start with
+// "$2"; anything else is treated as legacy plaintext for a one-time compare.
+function verifyPassword(inputPassword: string, storedPassword: string): boolean {
+  if (storedPassword.startsWith("$2")) {
+    return bcrypt.compareSync(inputPassword, storedPassword);
+  }
+  return inputPassword === storedPassword;
+}
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -57,7 +68,7 @@ export const authOptions: NextAuthOptions = {
 
           // Case B: Password Login
           if (credentials.password) {
-            if (user.password === credentials.password) {
+            if (verifyPassword(credentials.password, user.password)) {
               return {
                 id: user.id,
                 email: user.email,
@@ -81,7 +92,7 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          if (user.password !== credentials.password) {
+          if (!verifyPassword(credentials.password, user.password)) {
             console.log("[AUTH] Password mismatch for email:", credentials.email);
             return null;
           }
