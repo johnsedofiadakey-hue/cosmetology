@@ -67,6 +67,7 @@ export function Footer({ settings }: { settings?: any }) {
             <nav className="flex flex-col gap-4">
               <Link href="/#services" className="text-zinc-400 hover:text-white transition-colors text-sm">Services</Link>
               <Link href="/#portfolio" className="text-zinc-400 hover:text-white transition-colors text-sm">Portfolio</Link>
+              <Link href="/about" className="text-zinc-400 hover:text-white transition-colors text-sm">Our Story</Link>
               <Link href="/portal" className="text-zinc-400 hover:text-white transition-colors text-sm">Client Portal</Link>
               <Link href="/booking" className="text-zinc-400 hover:text-white transition-colors text-sm">Book Session</Link>
               <Link href="/admin" className="text-zinc-400 hover:text-white transition-colors text-sm font-bold border-t border-white/5 pt-2">Admin Portal</Link>

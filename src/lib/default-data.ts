@@ -22,6 +22,15 @@ export const defaultSettings = {
   heroImage: "/lou_beauty_hero_bg.png",
   heroVideoUrl: "",
   heroMediaType: "image",
+  // "Our Story" — the short homepage teaser plus the full elaborated
+  // version on the dedicated /about page. aboutBody supports blank-line
+  // separated paragraphs.
+  aboutHeading: "Our Story",
+  aboutImage: "/service_hair.png",
+  aboutIntro: "LOÙ Beauty Hub is more than a beauty brand — it is a space created with intention, care, and love.",
+  aboutBody: "LOÙ Beauty Hub is more than a beauty brand—it is a space created with intention, care, and love. A brand dedicated to enhancing the natural beauty of women, restoring confidence, and creating a safe, refined experience for every woman who walks through our doors.\n\nThis is for the woman finding her glow again.\nThe woman learning to see herself differently.\nThe woman stepping into her softness, her power, and her full potential.",
+  aboutBadgeNumber: "10+",
+  aboutBadgeLabel: "Years of Luxury Experience",
   contactEmail: "hello@loubeautyhub.com",
   contactPhone: "+233 00 000 0000",
   address: "Accra, Ghana",

@@ -52,7 +52,7 @@ export default async function Home() {
       />
       
       <TrustStrip />
-      <About />
+      <About settings={serializedSettings} />
       <Services settings={serializedSettings} />
       <Portfolio />
       <Testimonials />

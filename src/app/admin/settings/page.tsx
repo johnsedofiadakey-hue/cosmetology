@@ -19,6 +19,12 @@ export default function SettingsPage() {
     heroVideoUrl: "",
     heroMediaType: "image",
     logoUrl: "/logo.jpg",
+    aboutHeading: "Our Story",
+    aboutImage: "/service_hair.png",
+    aboutIntro: "",
+    aboutBody: "",
+    aboutBadgeNumber: "10+",
+    aboutBadgeLabel: "Years of Luxury Experience",
     paystackPublicKey: "",
     whatsappNumber: "",
     instagramUrl: "",
@@ -287,6 +293,82 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+
+                {/* About / Our Story */}
+                <div className="pt-8 border-t space-y-6">
+                  <div className="flex items-center gap-2 text-zinc-400 mb-2">
+                    <Type className="w-4 h-4" />
+                    <span className="text-xs font-bold uppercase tracking-widest">About / Our Story</span>
+                  </div>
+                  <p className="text-xs text-zinc-500 -mt-4">Powers the homepage teaser and the full <code className="bg-zinc-100 px-1 rounded">/about</code> page.</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Section Heading</label>
+                      <input
+                        type="text"
+                        value={settings.aboutHeading || ''}
+                        onChange={(e) => setSettings({...settings, aboutHeading: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                        placeholder="Our Story"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Upload About Image</label>
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => uploadFile(e, 'aboutImage')}
+                          className="text-xs text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20 cursor-pointer"
+                        />
+                        <p className="text-[10px] text-zinc-400 truncate">Current: {settings.aboutImage || "None"}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-zinc-700">Homepage Teaser (short)</label>
+                    <textarea
+                      value={settings.aboutIntro || ''}
+                      onChange={(e) => setSettings({...settings, aboutIntro: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border h-20"
+                      placeholder="A one or two sentence excerpt shown on the homepage."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-zinc-700">Full Story (shown on /about — blank line = new paragraph)</label>
+                    <textarea
+                      value={settings.aboutBody || ''}
+                      onChange={(e) => setSettings({...settings, aboutBody: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border h-48 font-serif"
+                      placeholder="The full, elaborated version of your story..."
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Badge Number</label>
+                      <input
+                        type="text"
+                        value={settings.aboutBadgeNumber || ''}
+                        onChange={(e) => setSettings({...settings, aboutBadgeNumber: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                        placeholder="10+"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-zinc-700">Badge Label</label>
+                      <input
+                        type="text"
+                        value={settings.aboutBadgeLabel || ''}
+                        onChange={(e) => setSettings({...settings, aboutBadgeLabel: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                        placeholder="Years of Luxury Experience"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-8 border-t space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-zinc-700">Instagram URL</label>

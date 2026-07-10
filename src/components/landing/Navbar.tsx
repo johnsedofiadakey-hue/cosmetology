@@ -52,6 +52,10 @@ export function Navbar({ settings }: { settings?: any }) {
               Showcase
               <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-accent transition-all group-hover/link:w-full" />
             </Link>
+            <Link href="/about" className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-brand-primary transition-all relative group/link">
+              Our Story
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-accent transition-all group-hover/link:w-full" />
+            </Link>
             <Link href="/#contact" className="text-xs font-bold uppercase tracking-widest text-zinc-600 hover:text-brand-primary transition-all relative group/link">
               Contact
               <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-brand-accent transition-all group-hover/link:w-full" />
