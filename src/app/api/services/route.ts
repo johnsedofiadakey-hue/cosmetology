@@ -21,6 +21,7 @@ export async function POST(request: Request) {
         id: createId("service"),
         name: data.name,
         price: Number(data.price),
+        priceMax: data.priceMax !== undefined && data.priceMax !== "" ? Number(data.priceMax) : undefined,
         duration: Number(data.duration),
         category: data.category || "Hair",
         description: data.description || "",
@@ -52,6 +53,7 @@ export async function PATCH(request: Request) {
 
       if (data.name !== undefined) item.name = data.name;
       if (data.price !== undefined) item.price = Number(data.price);
+      if (data.priceMax !== undefined) item.priceMax = data.priceMax === "" ? undefined : Number(data.priceMax);
       if (data.duration !== undefined) item.duration = Number(data.duration);
       if (data.category !== undefined) item.category = data.category;
       if (data.description !== undefined) item.description = data.description;

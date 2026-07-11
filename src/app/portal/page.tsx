@@ -14,12 +14,16 @@ export default function ClientPortalAuth() {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"phone" | "password" | "otp">("phone");
   const [settings, setSettings] = useState<any>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    fetch("/api/settings").then(res => res.json()).then(data => setSettings(data));
+    fetch("/api/settings")
+      .then(res => res.json())
+      .then(data => setSettings(data))
+      .finally(() => setSettingsLoaded(true));
 
     // Auto-fill phone from localStorage if present
     if (typeof window !== "undefined") {
@@ -142,8 +146,8 @@ export default function ClientPortalAuth() {
                   />
                 </div>
               </div>
-              <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20" disabled={loading}>
-                Continue <ArrowRight className="w-5 h-5" />
+              <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20" disabled={loading || !settingsLoaded}>
+                {settingsLoaded ? <>Continue <ArrowRight className="w-5 h-5" /></> : "Loading..."}
               </Button>
             </div>
           )}

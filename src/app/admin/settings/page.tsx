@@ -38,6 +38,9 @@ export default function SettingsPage() {
     currencySymbol: "GH₵",
     enableOTP: true,
     requireDeposit: false,
+    momoNumber: "",
+    momoName: "",
+    bookingPolicy: "",
   });
 
   const [loading, setLoading] = useState(true);
@@ -493,8 +496,8 @@ export default function SettingsPage() {
                   </div>
                   <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
                     <div>
-                      <p className="text-sm font-bold">Require Online Deposit</p>
-                      <p className="text-xs text-zinc-500">Off: clients confirm booking and pay by cash/Mobile Money in person. On: requires a Paystack deposit at booking.</p>
+                      <p className="text-sm font-bold">Require Booking Deposit</p>
+                      <p className="text-xs text-zinc-500">Off: clients confirm booking and pay by cash/Mobile Money in person. On: shows your booking policy and Mobile Money details, and requires agreement before confirming (no online charge — Paystack isn't connected yet).</p>
                     </div>
                     <button
                       onClick={() => setSettings({...settings, requireDeposit: !settings.requireDeposit})}
@@ -503,6 +506,42 @@ export default function SettingsPage() {
                       <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.requireDeposit ? 'right-1' : 'left-1'}`} />
                     </button>
                   </div>
+
+                  {settings.requireDeposit && (
+                    <div className="space-y-4 p-4 bg-brand-primary/5 rounded-2xl border border-dashed border-brand-primary/20">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-zinc-700">Mobile Money Number</label>
+                          <input
+                            type="text"
+                            value={settings.momoNumber || ''}
+                            onChange={(e) => setSettings({...settings, momoNumber: e.target.value})}
+                            className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                            placeholder="e.g. 0541234567"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-zinc-700">Account Name</label>
+                          <input
+                            type="text"
+                            value={settings.momoName || ''}
+                            onChange={(e) => setSettings({...settings, momoName: e.target.value})}
+                            className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                            placeholder="e.g. LOÙ Beauty Hub"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-zinc-700">Booking Policy (shown to clients before they confirm)</label>
+                        <textarea
+                          value={settings.bookingPolicy || ''}
+                          onChange={(e) => setSettings({...settings, bookingPolicy: e.target.value})}
+                          className="w-full px-4 py-3 rounded-xl border h-40"
+                          placeholder="Your deposit, cancellation, and rescheduling policy..."
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

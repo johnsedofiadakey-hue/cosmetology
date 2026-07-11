@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Scissors, Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { formatServicePrice } from "@/lib/utils";
+import { ServiceCategoryIcon } from "@/components/landing/ServiceCategoryIcon";
 
-const EMPTY_SERVICE = { name: "", price: "", duration: "", category: "Hair", description: "", imageUrl: "" };
+const EMPTY_SERVICE = { name: "", price: "", priceMax: "", duration: "", category: "", description: "", imageUrl: "" };
 
 export default function AdminServices() {
   const [formState, setFormState] = useState(EMPTY_SERVICE);
@@ -20,6 +22,8 @@ export default function AdminServices() {
     });
   }, []);
 
+  const categories = Array.from(new Set(services.map((s) => s.category || "Other")));
+
   const openAdd = () => {
     setEditingId(null);
     setFormState(EMPTY_SERVICE);
@@ -31,8 +35,9 @@ export default function AdminServices() {
     setFormState({
       name: service.name || "",
       price: String(service.price ?? ""),
+      priceMax: service.priceMax !== undefined && service.priceMax !== null ? String(service.priceMax) : "",
       duration: String(service.duration ?? ""),
-      category: service.category || "Hair",
+      category: service.category || "",
       description: service.description || "",
       imageUrl: service.image || "",
     });
@@ -41,7 +46,12 @@ export default function AdminServices() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...formState, price: parseFloat(formState.price), duration: parseInt(formState.duration) };
+    const payload = {
+      ...formState,
+      price: parseFloat(formState.price),
+      priceMax: formState.priceMax ? parseFloat(formState.priceMax) : "",
+      duration: parseInt(formState.duration),
+    };
 
     if (editingId) {
       const res = await fetch("/api/services", {
@@ -119,9 +129,23 @@ export default function AdminServices() {
                 value={formState.name || ""}
                 onChange={e => setFormState({...formState, name: e.target.value})}
                 className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
-                placeholder="e.g. Signature Facial"
+                placeholder="e.g. Classic Lashes"
                 required
               />
+            </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-zinc-400">Category</label>
+              <input
+                value={formState.category || ""}
+                onChange={e => setFormState({...formState, category: e.target.value})}
+                list="service-categories"
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                placeholder="e.g. Waxing, Lashes, Brows..."
+                required
+              />
+              <datalist id="service-categories">
+                {categories.map((c) => <option key={c} value={c} />)}
+              </datalist>
             </div>
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Price ({currency})</label>
@@ -135,6 +159,16 @@ export default function AdminServices() {
               />
             </div>
             <div className="space-y-2">
+              <label className="text-xs font-bold uppercase text-zinc-400">Max Price (optional, for a range)</label>
+              <input
+                type="number"
+                value={formState.priceMax || ""}
+                onChange={e => setFormState({...formState, priceMax: e.target.value})}
+                className="w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                placeholder="Leave blank for a fixed price"
+              />
+            </div>
+            <div className="space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Duration (min)</label>
               <input
                 type="number"
@@ -145,7 +179,7 @@ export default function AdminServices() {
                 required
               />
             </div>
-            <div className="md:col-span-2 space-y-2">
+            <div className="md:col-span-3 space-y-2">
               <label className="text-xs font-bold uppercase text-zinc-400">Description</label>
               <textarea
                 value={formState.description || ""}
@@ -154,8 +188,8 @@ export default function AdminServices() {
                 placeholder="Brief description of the service..."
               />
             </div>
-            <div className="md:col-span-2 space-y-2">
-              <label className="text-xs font-bold uppercase text-zinc-400">Upload Service Image</label>
+            <div className="md:col-span-4 space-y-2">
+              <label className="text-xs font-bold uppercase text-zinc-400">Upload Service Image (optional)</label>
               <div className="flex flex-col gap-2">
                 <input
                   type="file"
@@ -174,37 +208,45 @@ export default function AdminServices() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {services.map((service) => (
-          <div key={service.id} className="bg-white p-6 rounded-3xl border hover:shadow-md transition-all group relative">
-            <div className="flex justify-between items-start mb-4">
-              <div className="w-12 h-12 rounded-2xl bg-brand-secondary/50 flex items-center justify-center text-brand-primary">
-                <Scissors className="w-6 h-6" />
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => openEdit(service)}
-                  className="text-zinc-300 hover:text-brand-primary transition-colors"
-                >
-                  <Pencil className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => handleDelete(service.id)}
-                  className="text-zinc-300 hover:text-red-500 transition-colors"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <h4 className="text-lg font-bold">{service.name}</h4>
-            <p className="text-zinc-500 text-sm mb-6">{service.category} • {service.duration} mins</p>
-            <div className="flex justify-between items-center pt-4 border-t border-zinc-50">
-              <span className="text-xl font-bold text-brand-primary">{currency}{service.price.toFixed(2)}</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Active</span>
-            </div>
+      {categories.map((category) => (
+        <div key={category} className="space-y-4">
+          <div className="flex items-center gap-2">
+            <ServiceCategoryIcon category={category} className="w-5 h-5 text-brand-primary" />
+            <h4 className="text-lg font-bold text-brand-primary">{category}</h4>
           </div>
-        ))}
-      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {services.filter((s) => (s.category || "Other") === category).map((service) => (
+              <div key={service.id} className="bg-white p-6 rounded-3xl border hover:shadow-md transition-all group relative">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-secondary/50 flex items-center justify-center text-brand-primary">
+                    <ServiceCategoryIcon category={service.category} className="w-6 h-6" />
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => openEdit(service)}
+                      className="text-zinc-300 hover:text-brand-primary transition-colors"
+                    >
+                      <Pencil className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(service.id)}
+                      className="text-zinc-300 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+                <h4 className="text-lg font-bold">{service.name}</h4>
+                <p className="text-zinc-500 text-sm mb-6">{service.duration} mins</p>
+                <div className="flex justify-between items-center pt-4 border-t border-zinc-50">
+                  <span className="text-xl font-bold text-brand-primary">{formatServicePrice(service, currency)}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-400">Active</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

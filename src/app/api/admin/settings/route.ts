@@ -41,6 +41,9 @@ const EDITABLE_SETTINGS_FIELDS = [
   "paystackPublicKey",
   "enableOTP",
   "requireDeposit",
+  "momoNumber",
+  "momoName",
+  "bookingPolicy",
 ] as const;
 
 function pickEditableSettings(body: Record<string, unknown>) {

@@ -42,44 +42,54 @@ export const defaultSettings = {
   twitterUrl: "",
   currencySymbol: "GH₵",
   paystackPublicKey: "",
-  // Off by default: clients pay by cash/Mobile Money in person, so booking
-  // doesn't require an online deposit until Paystack is actually wired up.
+  // Paystack isn't wired up yet, so a deposit requirement doesn't charge
+  // online — it shows the policy below and Mobile Money instructions
+  // instead, and the appointment is confirmed pending manual deposit
+  // verification by the studio.
   requireDeposit: false,
+  momoNumber: "",
+  momoName: "",
+  bookingPolicy: "A non-refundable booking deposit is required to secure all appointments. Your deposit will be deducted from the total cost of your service.\n\nIf you need to reschedule your appointment, please notify us at least 3 hours before your scheduled appointment time.\n\nAppointments rescheduled with 3 hours' notice or more may transfer the existing deposit to the new appointment.\n\nCancellations, same-day reschedules made with less than 3 hours' notice, and no-shows will result in the forfeiture of your booking deposit.\n\nA new deposit will be required to book another appointment after a late cancellation or no-show.\n\nBy booking an appointment with us, you acknowledge and agree to this policy.",
   enableOTP: true,
   updatedAt: new Date(0).toISOString(),
 };
 
+// priceMax is set only for range-priced services ("100-250"); fixed-price
+// services (e.g. "200") just use price. duration is an estimate the admin
+// can fine-tune per service via the Services edit form.
 export const defaultServices = [
-  {
-    id: "hair-1",
-    name: "Precision Cut & Balayage",
-    description: "Our signature hair transformation.",
-    price: 150,
-    duration: 120,
-    category: "Hair",
-    image: "/service_hair.png",
-    materials: [],
-  },
-  {
-    id: "skin-1",
-    name: "Signature Glow Facial",
-    description: "A restorative skin treatment for a radiant finish.",
-    price: 120,
-    duration: 75,
-    category: "Skin",
-    image: "/service_skin.png",
-    materials: [],
-  },
-  {
-    id: "nails-1",
-    name: "Luxury Nail Ritual",
-    description: "Detailed nail care with a polished, long-lasting result.",
-    price: 80,
-    duration: 60,
-    category: "Nails",
-    image: "/service_nails.png",
-    materials: [],
-  },
+  // Waxing
+  { id: "wax-full-face", name: "Full Face", description: "", price: 200, duration: 30, category: "Waxing", image: "", materials: [] },
+  { id: "wax-underarms", name: "Underarms", description: "", price: 100, priceMax: 250, duration: 20, category: "Waxing", image: "", materials: [] },
+  { id: "wax-full-arms", name: "Full Arms", description: "", price: 250, priceMax: 350, duration: 45, category: "Waxing", image: "", materials: [] },
+  { id: "wax-legs", name: "Half Legs / Full Legs", description: "", price: 200, priceMax: 550, duration: 60, category: "Waxing", image: "", materials: [] },
+  { id: "wax-full-body", name: "Full Body", description: "", price: 500, priceMax: 1500, duration: 120, category: "Waxing", image: "", materials: [] },
+  { id: "wax-bikini", name: "Bikini Line", description: "", price: 150, duration: 20, category: "Waxing", image: "", materials: [] },
+  { id: "wax-brazilian", name: "Brazilian (Back to Front)", description: "", price: 300, duration: 30, category: "Waxing", image: "", materials: [] },
+
+  // Lashes
+  { id: "lash-classic", name: "Classic", description: "", price: 150, duration: 90, category: "Lashes", image: "", materials: [] },
+  { id: "lash-hybrid", name: "Hybrid", description: "", price: 220, duration: 105, category: "Lashes", image: "", materials: [] },
+  { id: "lash-volume", name: "Volume", description: "", price: 300, duration: 120, category: "Lashes", image: "", materials: [] },
+  { id: "lash-mega-volume", name: "Mega Volume", description: "", price: 350, duration: 135, category: "Lashes", image: "", materials: [] },
+  { id: "lash-bottom", name: "Bottom Lashes", description: "", price: 50, duration: 30, category: "Lashes", image: "", materials: [] },
+
+  // Brows
+  { id: "brow-microblading", name: "Microblading", description: "", price: 500, duration: 120, category: "Brows", image: "", materials: [] },
+  { id: "brow-lamination", name: "Brow Lamination", description: "", price: 350, duration: 45, category: "Brows", image: "", materials: [] },
+
+  // Lips
+  { id: "lip-blush", name: "Lip Blush", description: "Semi-permanent tattoo that adds a natural flush of pinkness to your lips.", price: 300, priceMax: 350, duration: 90, category: "Lips", image: "", materials: [] },
+  { id: "lip-combo", name: "Lip Combo", description: "Creates fuller and more defined lip edges.", price: 200, priceMax: 250, duration: 60, category: "Lips", image: "", materials: [] },
+
+  // Teeth Whitening
+  { id: "teeth-whitening", name: "Teeth Whitening", description: "30 minutes per session.", price: 150, duration: 30, category: "Teeth Whitening", image: "", materials: [] },
+
+  // Facials
+  { id: "facial-anti-aging", name: "Anti-Aging / Rejuvenating Facial", description: "", price: 400, priceMax: 600, duration: 60, category: "Facials", image: "", materials: [] },
+
+  // Skin Tag Removal
+  { id: "skin-tag-removal", name: "Skin Tag Removal", description: "", price: 200, priceMax: 250, duration: 30, category: "Skin Tag Removal", image: "", materials: [] },
 ];
 
 export const defaultInventory = [

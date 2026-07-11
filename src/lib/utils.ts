@@ -34,3 +34,23 @@ export function formatSlotLabel(time: string): string {
   const displayHour = hour % 12 === 0 ? 12 : hour % 12;
   return `${displayHour}:${minuteStr} ${period}`;
 }
+
+// Displays a service's price as either a fixed amount ("GH₵200") or, when
+// priceMax is set, a range ("GH₵100-250"). Booking totals always sum the
+// base `price` (the low end of a range) — see formatTotalPrice below.
+export function formatServicePrice(service: { price: number; priceMax?: number }, currency: string): string {
+  if (service.priceMax && service.priceMax > service.price) {
+    return `${currency}${service.price}-${service.priceMax}`;
+  }
+  return `${currency}${service.price}`;
+}
+
+// Sums a cart's base prices, and — if any selected service has a price
+// range — also sums the high end, so the total is shown as a range too
+// (e.g. "GH₵450 - GH₵700") rather than silently collapsing to just the low
+// estimate.
+export function formatTotalPrice(services: Array<{ price: number; priceMax?: number }>, currency: string): string {
+  const min = services.reduce((sum, s) => sum + s.price, 0);
+  const max = services.reduce((sum, s) => sum + (s.priceMax && s.priceMax > s.price ? s.priceMax : s.price), 0);
+  return max > min ? `${currency}${min} - ${currency}${max}` : `${currency}${min}`;
+}

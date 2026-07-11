@@ -22,6 +22,9 @@ export async function GET() {
       address: settings?.address,
       enableOTP: settings?.enableOTP || false,
       requireDeposit: settings?.requireDeposit || false,
+      momoNumber: settings?.momoNumber,
+      momoName: settings?.momoName,
+      bookingPolicy: settings?.bookingPolicy,
     });
   } catch (error) {
     return NextResponse.json({ error: 'Failed to fetch settings' }, { status: 500 });
