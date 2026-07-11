@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { readStore, findClientByPhone } from "@/lib/data-store";
+import admin from "@/lib/firebase-admin";
 
 // Seed/legacy accounts may still have a plaintext password if the store was
 // created before hashing was introduced. bcrypt hashes always start with
@@ -21,12 +22,48 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text", placeholder: "admin@beautystudio.com" },
         password: { label: "Password", type: "password" },
         phone: { label: "Phone", type: "text" },
-        otp: { label: "OTP", type: "text" }
+        firebaseIdToken: { label: "Firebase ID Token", type: "text" }
       },
       async authorize(credentials) {
         const store = await readStore();
 
-        // 1. Phone number authentication (Client Portal)
+        // 1. Firebase-verified phone OTP login (Client Portal)
+        if (credentials?.firebaseIdToken) {
+          let decoded;
+          try {
+            decoded = await admin.auth().verifyIdToken(credentials.firebaseIdToken);
+          } catch (err) {
+            console.log("[AUTH] Invalid Firebase ID token:", err);
+            return null;
+          }
+
+          const phoneNumber = decoded.phone_number;
+          if (!phoneNumber) {
+            console.log("[AUTH] Firebase token missing phone_number claim");
+            return null;
+          }
+
+          const client = findClientByPhone(store, phoneNumber);
+          if (!client) {
+            console.log("[AUTH] Client phone not found (Firebase-verified):", phoneNumber);
+            return null;
+          }
+
+          const user = store.users.find((u) => u.id === client.userId);
+          if (!user) {
+            console.log("[AUTH] Linked user not found for client:", client.id);
+            return null;
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        }
+
+        // 2. Phone number authentication (Client Portal)
         if (credentials?.phone) {
           const client = findClientByPhone(store, credentials.phone.trim());
 
@@ -41,24 +78,7 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // Case A: OTP Login
-          if (credentials.otp) {
-            const isSimulated = credentials.otp === "1234";
-            const isDynamicValid = user.tempOtp && user.tempOtp === credentials.otp && (!user.tempOtpExpires || new Date(user.tempOtpExpires) > new Date());
-
-            if (isSimulated || isDynamicValid) {
-              return {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                role: user.role,
-              };
-            }
-            console.log("[AUTH] Invalid OTP code:", credentials.otp);
-            return null;
-          }
-
-          // Case B: Password Login
+          // Password Login
           if (credentials.password) {
             if (verifyPassword(credentials.password, user.password)) {
               return {
@@ -75,7 +95,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // 2. Standard email/password authentication (Admin/Staff Portal)
+        // 3. Standard email/password authentication (Admin/Staff Portal)
         if (credentials?.email && credentials?.password) {
           const user = store.users.find((candidate) => candidate.email.toLowerCase() === credentials.email.toLowerCase());
 

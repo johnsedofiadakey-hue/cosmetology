@@ -1,12 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import {
+  RecaptchaVerifier,
+  signInWithPhoneNumber,
+  ConfirmationResult,
+} from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Phone, Lock, ArrowRight, ShieldCheck, ArrowLeft } from "lucide-react";
 import { normalizeGhanaPhone, stripGhanaPrefix } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
+
+function firebaseErrorMessage(err: any): string {
+  const code = err?.code || "";
+  if (code === "auth/invalid-phone-number") return "That phone number doesn't look right. Please check and try again.";
+  if (code === "auth/too-many-requests") return "Too many attempts from this device. Please wait a bit and try again.";
+  if (code === "auth/captcha-check-failed") return "Verification failed. Please refresh the page and try again.";
+  if (code === "auth/quota-exceeded") return "We've hit our verification limit for now. Please try again later or log in with your password.";
+  if (code === "auth/code-expired") return "That code has expired. Please request a new one.";
+  if (code === "auth/invalid-verification-code") return "Incorrect code. Please check and try again.";
+  return "Failed to send verification code. Please try again.";
+}
 
 export default function ClientPortalAuth() {
   const [phone, setPhone] = useState("");
@@ -18,6 +35,9 @@ export default function ClientPortalAuth() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
+  const confirmationResultRef = useRef<ConfirmationResult | null>(null);
 
   useEffect(() => {
     fetch("/api/settings")
@@ -32,27 +52,29 @@ export default function ClientPortalAuth() {
         setPhone(stripGhanaPrefix(savedPhone));
       }
     }
+
+    return () => {
+      recaptchaVerifierRef.current?.clear();
+      recaptchaVerifierRef.current = null;
+    };
   }, []);
 
   const fullPhone = () => normalizeGhanaPhone(phone);
 
-  const sendOtp = async () => {
-    const res = await fetch("/api/auth/otp/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone: fullPhone() }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      setStep("otp");
-      if (data.simulated) {
-        alert(`[SIMULATOR] Verification code sent! Use code: ${data.otpCode}`);
-      } else {
-        alert("Verification code has been sent to your phone number.");
-      }
-    } else {
-      setError(data.error || "Failed to send verification code. Please try again.");
+  const getRecaptchaVerifier = () => {
+    if (!recaptchaVerifierRef.current) {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+      });
     }
+    return recaptchaVerifierRef.current;
+  };
+
+  const sendOtp = async () => {
+    const verifier = getRecaptchaVerifier();
+    const confirmation = await signInWithPhoneNumber(auth, `+${fullPhone()}`, verifier);
+    confirmationResultRef.current = confirmation;
+    setStep("otp");
   };
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
@@ -62,8 +84,8 @@ export default function ClientPortalAuth() {
     if (settings?.enableOTP) {
       try {
         await sendOtp();
-      } catch (err) {
-        setError("Failed to connect to the server. Please try again.");
+      } catch (err: any) {
+        setError(firebaseErrorMessage(err));
       } finally {
         setLoading(false);
       }
@@ -73,7 +95,44 @@ export default function ClientPortalAuth() {
     }
   };
 
-  const handleFinalSubmit = async (e: React.FormEvent) => {
+  const handleOtpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      if (!confirmationResultRef.current) {
+        setError("Your session expired. Please request a new code.");
+        setStep("phone");
+        return;
+      }
+
+      const result = await confirmationResultRef.current.confirm(otp);
+      const idToken = await result.user.getIdToken();
+      await auth.signOut();
+
+      const signInResult = await signIn("credentials", {
+        redirect: false,
+        firebaseIdToken: idToken,
+      });
+
+      if (signInResult?.error) {
+        setError("This phone number isn't linked to an account yet. Please book an appointment first.");
+      } else {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("client_phone", fullPhone());
+        }
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err: any) {
+      setError(firebaseErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -82,13 +141,15 @@ export default function ClientPortalAuth() {
       const result = await signIn("credentials", {
         redirect: false,
         phone: fullPhone(),
-        password: step === "password" ? password : "",
-        otp: step === "otp" ? otp : "",
+        password,
       });
 
       if (result?.error) {
-        setError("Invalid phone number, password, or verification code.");
+        setError("Invalid phone number or password.");
       } else {
+        if (typeof window !== "undefined") {
+          localStorage.setItem("client_phone", fullPhone());
+        }
         router.push("/dashboard");
         router.refresh();
       }
@@ -101,6 +162,7 @@ export default function ClientPortalAuth() {
 
   return (
     <div className="min-h-screen bg-brand-primary flex items-center justify-center p-6">
+      <div id="recaptcha-container" />
       <div className="max-w-md w-full bg-white rounded-[40px] p-8 sm:p-10 shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-2 bg-brand-accent" />
         <Link href="/" className="absolute top-8 left-8 flex items-center gap-2 text-zinc-400 hover:text-brand-primary transition-colors text-xs font-bold uppercase tracking-widest group">
@@ -113,7 +175,12 @@ export default function ClientPortalAuth() {
           <p className="text-zinc-400 text-sm">Access your treatment history and book new sessions.</p>
         </div>
 
-        <form onSubmit={step === 'phone' ? handlePhoneSubmit : handleFinalSubmit} className="space-y-6">
+        <form
+          onSubmit={
+            step === "phone" ? handlePhoneSubmit : step === "otp" ? handleOtpSubmit : handlePasswordSubmit
+          }
+          className="space-y-6"
+        >
           {error && (
             <p className="text-rose-600 text-xs text-center font-medium bg-rose-50 border border-rose-100 py-3 px-4 rounded-2xl animate-in fade-in zoom-in-95 duration-200">
               {error}
@@ -147,7 +214,7 @@ export default function ClientPortalAuth() {
                 </div>
               </div>
               <Button type="submit" className="w-full h-16 text-lg rounded-2xl gap-2 shadow-xl shadow-brand-primary/20" disabled={loading || !settingsLoaded}>
-                {settingsLoaded ? <>Continue <ArrowRight className="w-5 h-5" /></> : "Loading..."}
+                {!settingsLoaded ? "Loading..." : loading ? "Sending code..." : <>Continue <ArrowRight className="w-5 h-5" /></>}
               </Button>
             </div>
           )}
@@ -156,14 +223,15 @@ export default function ClientPortalAuth() {
             <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
               <div className="space-y-2 text-center">
                 <label className="text-xs font-bold uppercase text-zinc-400 tracking-widest">Verification Code</label>
-                <p className="text-[10px] text-zinc-500 mb-4">Enter the 4-digit code sent to +{fullPhone()}</p>
+                <p className="text-[10px] text-zinc-500 mb-4">Enter the 6-digit code sent by SMS to +{fullPhone()}</p>
                 <input
                   type="text"
-                  maxLength={4}
+                  inputMode="numeric"
+                  maxLength={6}
                   value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  className="w-full text-center text-4xl tracking-[2em] font-bold py-4 rounded-2xl border focus:ring-2 focus:ring-brand-primary outline-none"
-                  placeholder="0000"
+                  onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                  className="w-full text-center text-4xl tracking-[0.5em] font-bold py-4 rounded-2xl border focus:ring-2 focus:ring-brand-primary outline-none"
+                  placeholder="000000"
                   required
                   disabled={loading}
                 />
@@ -221,8 +289,8 @@ export default function ClientPortalAuth() {
                       setError("");
                       try {
                         await sendOtp();
-                      } catch (err) {
-                        setError("Failed to connect to the server. Please try again.");
+                      } catch (err: any) {
+                        setError(firebaseErrorMessage(err));
                       } finally {
                         setLoading(false);
                       }
