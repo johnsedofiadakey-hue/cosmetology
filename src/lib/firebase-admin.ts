@@ -1,13 +1,32 @@
 import admin from 'firebase-admin';
+import { Storage } from '@google-cloud/storage';
 
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.applicationDefault(),
-    // Must match the app's actual Storage bucket (see NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-    // in firebase.ts) — not Firebase App Hosting's internal build-artifact bucket.
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || "cosmetologysystem.firebasestorage.app",
   });
 }
 
-export const bucket = admin.storage().bucket();
+// Must match the app's actual Storage bucket (see NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+// in firebase.ts) — not Firebase App Hosting's internal build-artifact bucket.
+const STORAGE_BUCKET = process.env.FIREBASE_STORAGE_BUCKET || "cosmetologysystem.firebasestorage.app";
+
+// Constructed directly via @google-cloud/storage (not admin.storage()) so we
+// can disable the client's built-in automatic retries. The library treats
+// any write with ifGenerationMatch as safe to auto-retry, but it can't tell
+// "this already succeeded, the response just got lost" apart from "this
+// genuinely conflicts" — so a transient network blip right after a
+// successful conditional write causes the library's own hidden retry to
+// receive a stale-precondition error, which then trips updateStore()'s own
+// retry loop into re-running the whole update a second time on top of the
+// write that already landed, silently duplicating it. This bit us for real:
+// a batch of service-catalog writes each landed twice. Disabling autoRetry
+// means transient errors surface immediately to our code instead of being
+// retried invisibly underneath our own retry logic.
+const storage = new Storage({
+  projectId: 'cosmetologysystem',
+  retryOptions: { autoRetry: false },
+});
+
+export const bucket = storage.bucket(STORAGE_BUCKET);
 export default admin;
