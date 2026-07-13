@@ -115,7 +115,7 @@ export function Footer({ settings }: { settings?: any }) {
                 Admin Control Center
               </button>
             </Link>
-            <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Technical Infrastructure by Antigravity</p>
+            <p className="text-[10px] text-zinc-600 uppercase tracking-widest">Built & Powered by Stormglide.io</p>
           </div>
         </div>
       </div>
